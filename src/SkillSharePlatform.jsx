@@ -8,7 +8,7 @@ const SkillSharePlatform = () => {
   const [searchQuery, setSearchQuery] = useState('');
   
   const [profile, setProfile] = useState({
-    nickname: '小池改理',
+    nickname: 'けいすけバカ',
     skills: ['JavaScript', 'React', 'デザイン'],
     department: '情報工学科',
     year: '3年'
