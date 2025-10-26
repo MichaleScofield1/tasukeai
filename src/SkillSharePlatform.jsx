@@ -21,7 +21,7 @@ const SkillSharePlatform = () => {
   
   //現在ログインしているユーザーのプロフィール情報
   const [profile, setProfile] = useState({
-    nickname: '山田太郎',
+    nickname: 'けいすけバカ',
     skills: ['JavaScript', 'React', 'デザイン'],
     department: '情報工学科',
     year: '3年'
