@@ -147,7 +147,6 @@ const SkillSharePlatform = () => {
         responses: updatedResponses
       });
 
-      // ベストアンサー選択後に解決済み確認ダイアログを表示
       setShowCloseConfirm(true);
 
       const updatedThread = {
@@ -215,37 +214,61 @@ const SkillSharePlatform = () => {
     thread.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const modalOverlayStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999
+  };
+
+  const modalContentStyle = {
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    padding: '24px',
+    maxWidth: '700px',
+    width: '90%',
+    maxHeight: '85vh',
+    overflowY: 'auto',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-3xl font-bold text-blue-600 border-b-4 border-blue-600 pb-2">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '24px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#2563eb', borderBottom: '4px solid #2563eb', paddingBottom: '8px' }}>
               Skill Share Platform
             </h1>
             <button 
               onClick={() => setShowProfile(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded hover:bg-gray-200"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
             >
               <User size={20} />
               {profile ? profile.nickname : 'プロフィール設定'}
             </button>
           </div>
 
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <Search style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
               <input
                 type="text"
                 placeholder="スレッドを検索..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                style={{ width: '100%', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <button 
               onClick={() => setShowNewThread(true)}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 24px', backgroundColor: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
             >
               <Plus size={20} />
               新規スレッド
@@ -253,41 +276,41 @@ const SkillSharePlatform = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
           {filteredThreads.map(thread => (
             <div 
               key={thread.id}
               onClick={() => setSelectedThread(thread)}
-              className="bg-white p-4 rounded-lg shadow hover:shadow-md cursor-pointer border-l-4 border-blue-500"
+              style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', cursor: 'pointer', borderLeft: '4px solid #2563eb' }}
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold">{thread.title}</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '600' }}>{thread.title}</h3>
                     {thread.status === 'closed' && (
-                      <span className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '4px', fontSize: '12px' }}>
                         <CheckCircle size={14} />
                         解決済み
                       </span>
                     )}
                     {thread.author === profile?.nickname && (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                      <span style={{ padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '4px', fontSize: '12px' }}>
                         あなたの投稿
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}>
                     投稿者: {thread.author} @{thread.authorId?.substring(0, 4)}
                   </p>
-                  <div className="flex flex-wrap gap-1">
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                     {thread.tags.map((tag, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                      <span key={idx} style={{ padding: '2px 8px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: '9999px', fontSize: '12px' }}>
                         #{tag}
                       </span>
                     ))}
                   </div>
                 </div>
-                <span className="text-sm text-gray-500">
+                <span style={{ fontSize: '14px', color: '#6b7280' }}>
                   返信: {thread.responses?.length || 0}件
                 </span>
               </div>
@@ -295,38 +318,39 @@ const SkillSharePlatform = () => {
           ))}
         </div>
 
+        {/* 新規スレッド作成モーダル */}
         {showNewThread && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">新規スレッド作成</h2>
+          <div style={modalOverlayStyle} onClick={() => setShowNewThread(false)}>
+            <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>新規スレッド作成</h2>
                 <button 
                   onClick={() => setShowNewThread(false)}
-                  className="hover:bg-gray-100 rounded p-2"
+                  style={{ padding: '8px', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'transparent' }}
                 >
                   <X size={24} />
                 </button>
               </div>
               
-              <div className="space-y-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <input
                   type="text"
                   placeholder="タイトル"
-                  className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                   value={newThread.title}
                   onChange={(e) => setNewThread({...newThread, title: e.target.value})}
                 />
                 
                 <textarea
                   placeholder="内容"
-                  className="w-full p-3 border border-gray-300 rounded h-40 focus:outline-none focus:border-blue-500"
+                  style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', height: '160px', outline: 'none' }}
                   value={newThread.content}
                   onChange={(e) => setNewThread({...newThread, content: e.target.value})}
                 />
                 
                 <div>
-                  <label className="block text-sm font-medium mb-2">カテゴリータグ</label>
-                  <div className="flex flex-wrap gap-2">
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>カテゴリータグ</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {categories.map(cat => (
                       <button
                         key={cat}
@@ -336,11 +360,14 @@ const SkillSharePlatform = () => {
                             : [...newThread.tags, cat];
                           setNewThread({...newThread, tags});
                         }}
-                        className={`px-3 py-1 rounded ${
-                          newThread.tags.includes(cat)
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
+                        style={{
+                          padding: '4px 12px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          cursor: 'pointer',
+                          backgroundColor: newThread.tags.includes(cat) ? '#2563eb' : '#e5e7eb',
+                          color: newThread.tags.includes(cat) ? 'white' : '#374151'
+                        }}
                       >
                         {cat}
                       </button>
@@ -350,7 +377,7 @@ const SkillSharePlatform = () => {
                 
                 <button 
                   onClick={createThread}
-                  className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 font-medium"
+                  style={{ width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '12px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '500' }}
                 >
                   投稿する
                 </button>
@@ -359,15 +386,16 @@ const SkillSharePlatform = () => {
           </div>
         )}
 
+        {/* スレッド詳細モーダル */}
         {selectedThread && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold">{selectedThread.title}</h2>
+          <div style={modalOverlayStyle} onClick={() => setSelectedThread(null)}>
+            <div style={{...modalContentStyle, maxWidth: '900px'}} onClick={(e) => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h2 style={{ fontSize: '24px', fontWeight: 'bold' }}>{selectedThread.title}</h2>
                     {selectedThread.status === 'closed' && (
-                      <span className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded text-sm">
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '6px', fontSize: '14px' }}>
                         <CheckCircle size={16} />
                         解決済み
                       </span>
@@ -376,7 +404,7 @@ const SkillSharePlatform = () => {
                   {selectedThread.status === 'open' && selectedThread.author === profile?.nickname && (
                     <button 
                       onClick={closeThreadDirectly}
-                      className="mt-2 flex items-center gap-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+                      style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', padding: '8px 16px', backgroundColor: '#10b981', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px' }}
                     >
                       <Lock size={16} />
                       解決済みにする
@@ -385,19 +413,19 @@ const SkillSharePlatform = () => {
                 </div>
                 <button 
                   onClick={() => setSelectedThread(null)}
-                  className="hover:bg-gray-100 rounded p-2"
+                  style={{ padding: '8px', borderRadius: '6px', border: 'none', cursor: 'pointer', backgroundColor: 'transparent' }}
                 >
                   <X size={24} />
                 </button>
               </div>
               
-              <div className="p-4">
-                <div className="bg-gray-50 border-l-4 border-blue-500 p-4 mb-4">
-                  <p className="text-sm text-gray-600 mb-2">1: 名前: {selectedThread.author}</p>
-                  <p className="text-gray-800 whitespace-pre-wrap">{selectedThread.content}</p>
-                  <div className="flex flex-wrap gap-1 mt-3">
+              <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                <div style={{ backgroundColor: '#f9fafb', borderLeft: '4px solid #2563eb', padding: '16px', marginBottom: '16px' }}>
+                  <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}>1: 名前: {selectedThread.author}</p>
+                  <p style={{ color: '#1f2937', whiteSpace: 'pre-wrap' }}>{selectedThread.content}</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '12px' }}>
                     {selectedThread.tags.map((tag, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                      <span key={idx} style={{ padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '9999px', fontSize: '12px' }}>
                         #{tag}
                       </span>
                     ))}
@@ -405,83 +433,85 @@ const SkillSharePlatform = () => {
                 </div>
                 
                 {selectedThread.responses && selectedThread.responses.map((response, idx) => (
-                  <div key={response.id} className={`border-l-4 p-4 mb-4 ${
-                    response.isBest 
-                      ? 'bg-yellow-50 border-yellow-500' 
-                      : 'bg-gray-50 border-gray-300'
-                  }`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <p className="text-sm text-gray-600">{idx + 2}: 名前: {response.author}</p>
+                  <div key={response.id} style={{
+                    borderLeft: response.isBest ? '4px solid #eab308' : '4px solid #d1d5db',
+                    backgroundColor: response.isBest ? '#fefce8' : '#f9fafb',
+                    padding: '16px',
+                    marginBottom: '16px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                      <p style={{ fontSize: '14px', color: '#4b5563' }}>{idx + 2}: 名前: {response.author}</p>
                       {!response.isBest && selectedThread.status === 'open' && selectedThread.author === profile?.nickname && (
                         <button 
                           onClick={() => selectBestAnswer(response.id)}
-                          className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', backgroundColor: '#10b981', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px' }}
                         >
                           <CheckCircle size={14} />
                           ベストアンサー
                         </button>
                       )}
                       {response.isBest && (
-                        <span className="flex items-center gap-1 px-3 py-1 bg-yellow-500 text-white rounded text-xs">
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', backgroundColor: '#eab308', color: 'white', borderRadius: '6px', fontSize: '12px' }}>
                           <CheckCircle size={14} />
                           ベストアンサー
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-800 whitespace-pre-wrap">{response.content}</p>
+                    <p style={{ color: '#1f2937', whiteSpace: 'pre-wrap' }}>{response.content}</p>
                   </div>
                 ))}
-
-                {selectedThread.status === 'open' && (
-                  <div className="mt-6 p-4 bg-white border-2 border-gray-200 rounded">
-                    <textarea 
-                      value={reply}
-                      onChange={(e) => setReply(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded mb-2 focus:outline-none focus:border-blue-500"
-                      rows="4"
-                      placeholder="返信を書く..."
-                    />
-                    <button 
-                      onClick={addReply}
-                      className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-                    >
-                      返信する
-                    </button>
-                  </div>
-                )}
-
-                {selectedThread.status === 'closed' && (
-                  <div className="mt-6 p-4 bg-gray-100 border-2 border-gray-300 rounded text-center">
-                    <p className="text-gray-600 flex items-center justify-center gap-2">
-                      <Lock size={20} />
-                      このスレッドは解決済みです
-                    </p>
-                  </div>
-                )}
               </div>
+
+              {selectedThread.status === 'open' && (
+                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb' }}>
+                  <textarea 
+                    value={reply}
+                    onChange={(e) => setReply(e.target.value)}
+                    style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', marginBottom: '8px', outline: 'none' }}
+                    rows="3"
+                    placeholder="返信を書く..."
+                  />
+                  <button 
+                    onClick={addReply}
+                    style={{ width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '8px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                  >
+                    返信する
+                  </button>
+                </div>
+              )}
+
+              {selectedThread.status === 'closed' && (
+                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', padding: '16px', borderRadius: '6px', textAlign: 'center' }}>
+                  <p style={{ color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                    <Lock size={20} />
+                    このスレッドは解決済みです
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
+        {/* ベストアンサー確認モーダル */}
         {showCloseConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold mb-4">ベストアンサーを選択しました</h3>
-              <p className="text-gray-600 mb-6">
+          <div style={modalOverlayStyle} onClick={() => setShowCloseConfirm(false)}>
+            <div style={{...modalContentStyle, maxWidth: '500px'}} onClick={(e) => e.stopPropagation()}>
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px' }}>ベストアンサーを選択しました</h3>
+              <p style={{ color: '#4b5563', marginBottom: '24px' }}>
                 このスレッドを解決済みにしますか？
                 <br />
-                <span className="text-sm text-red-600">※この操作は取り消せません</span>
+                <span style={{ fontSize: '14px', color: '#dc2626' }}>※この操作は取り消せません</span>
               </p>
-              <div className="flex gap-4">
+              <div style={{ display: 'flex', gap: '16px' }}>
                 <button 
                   onClick={() => closeThread(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                  style={{ flex: 1, padding: '8px 16px', backgroundColor: '#e5e7eb', color: '#374151', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   いいえ、まだ開いておく
                 </button>
                 <button 
                   onClick={() => closeThread(true)}
-                  className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  style={{ flex: 1, padding: '8px 16px', backgroundColor: '#10b981', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                 >
                   はい、解決済みにする
                 </button>
@@ -490,13 +520,14 @@ const SkillSharePlatform = () => {
           </div>
         )}
 
+        {/* プロフィール設定モーダル */}
         {showProfile && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h2 className="text-2xl font-bold mb-4">プロフィール設定</h2>
+          <div style={modalOverlayStyle} onClick={profile ? () => setShowProfile(false) : null}>
+            <div style={{...modalContentStyle, maxWidth: '500px'}} onClick={(e) => e.stopPropagation()}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>プロフィール設定</h2>
               {!profile && (
-                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                  <p className="text-sm text-yellow-800">⚠️ 初回起動です。ニックネームを設定してください。</p>
+                <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '6px' }}>
+                  <p style={{ fontSize: '14px', color: '#92400e' }}>⚠️ 初回起動です。ニックネームを設定してください。</p>
                 </div>
               )}
               <form onSubmit={(e) => {
@@ -511,62 +542,56 @@ const SkillSharePlatform = () => {
                 };
                 saveProfile(profileData);
               }}>
-                <div className="space-y-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      ニックネーム <span className="text-red-500">*必須</span>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+                      ニックネーム <span style={{ color: '#dc2626' }}>*必須</span>
                     </label>
                     <input
                       type="text"
                       name="nickname"
                       required
                       defaultValue={profile?.nickname}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                       placeholder="例: 山田太郎"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">スキルタグ</label>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>スキルタグ</label>
                     <input
                       type="text"
                       name="skills"
                       defaultValue={profile?.skills?.join(', ')}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                       placeholder="例: JavaScript, React, デザイン"
                     />
-                    <p className="text-xs text-gray-500 mt-1">カンマ区切りで入力</p>
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>カンマ区切りで入力</p>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">学科</label>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>学科</label>
                     <select 
                       name="department"
                       defaultValue={profile?.department || ''}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                     >
                       <option value="">選択してください</option>
-                      <option value="情報工学科">情報計算科学科</option>
-                      <option value="数理科学科">数理科学科</option>
-                      <option value="先端物理学科">先端物理学科</option>
-                      <option value="生命生物科学科">生命生物科学科</option>
-                    　<option value="先端科学科">先端科学科</option>
-                      <option value="電気電子情報工学科">電気電子情報工学科</option>
+                      <option value="情報工学科">情報工学科</option>
+                      <option value="電気電子工学科">電気電子工学科</option>
                       <option value="機械工学科">機械工学科</option>
                       <option value="デザイン学科">デザイン学科</option>
                       <option value="建築学科">建築学科</option>
-                      <option value="経営システム工学科">経営システム工学科</option>
-                      <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
-                      <option value="社会基盤工学科">社会基盤工学科</option>
+                      <option value="経営学科">経営学科</option>
                     </select>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">学年</label>
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>学年</label>
                     <select 
                       name="year"
                       defaultValue={profile?.year || ''}
-                      className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                     >
                       <option value="">選択してください</option>
                       <option value="1年">1年</option>
@@ -580,7 +605,7 @@ const SkillSharePlatform = () => {
                   
                   <button 
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                    style={{ width: '100%', backgroundColor: '#2563eb', color: 'white', padding: '8px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                   >
                     保存する
                   </button>
