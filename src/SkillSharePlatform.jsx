@@ -268,7 +268,7 @@ const SkillSharePlatform = () => {
             </div>
             <button 
               onClick={() => setShowNewThread(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 24px', backgroundColor: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
             >
               <Plus size={20} />
               新規スレッド
