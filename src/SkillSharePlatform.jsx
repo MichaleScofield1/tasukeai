@@ -546,12 +546,18 @@ const SkillSharePlatform = () => {
                       className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                     >
                       <option value="">選択してください</option>
-                      <option value="情報工学科">情報工学科</option>
-                      <option value="電気電子工学科">電気電子工学科</option>
+                      <option value="情報工学科">情報計算科学科</option>
+                      <option value="数理科学科">数理科学科</option>
+                      <option value="先端物理学科">先端物理学科</option>
+                      <option value="生命生物科学科">生命生物科学科</option>
+                    　<option value="先端科学科">先端科学科</option>
+                      <option value="電気電子情報工学科">電気電子情報工学科</option>
                       <option value="機械工学科">機械工学科</option>
                       <option value="デザイン学科">デザイン学科</option>
                       <option value="建築学科">建築学科</option>
-                      <option value="経営学科">経営学科</option>
+                      <option value="経営システム工学科">経営システム工学科</option>
+                      <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
+                      <option value="社会基盤工学科">社会基盤工学科</option>
                     </select>
                   </div>
                   
