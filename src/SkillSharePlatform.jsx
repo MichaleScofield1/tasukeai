@@ -336,14 +336,14 @@ const SkillSharePlatform = () => {
                 <input
                   type="text"
                   placeholder="タイトル"
-                  style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
+                  style={{ width: '90%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                   value={newThread.title}
                   onChange={(e) => setNewThread({...newThread, title: e.target.value})}
                 />
                 
                 <textarea
                   placeholder="内容"
-                  style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', height: '160px', outline: 'none' }}
+                  style={{ width: '90%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', height: '160px', outline: 'none' }}
                   value={newThread.content}
                   onChange={(e) => setNewThread({...newThread, content: e.target.value})}
                 />
