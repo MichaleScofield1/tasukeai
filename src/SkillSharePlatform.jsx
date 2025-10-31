@@ -364,7 +364,9 @@ useEffect(() => {
             <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h2 className="text-2xl font-bold text-gray-800">{selectedThread.title}</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 underline decoration-blue-500 decoration-2">
+                    {selectedThread.title}
+                  </h2>
                   {selectedThread.authorId === profile.userId && (
                     <span className="px-2 py-1 bg-blue-500 text-white rounded text-xs">
                       あなたの投稿
