@@ -261,7 +261,7 @@ const SkillSharePlatform = () => {
               <input
                 type="text"
                 placeholder="スレッドを検索..."
-                style={{ width: '90%', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '300px', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
