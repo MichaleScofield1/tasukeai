@@ -587,6 +587,7 @@ const SkillSharePlatform = () => {
                       <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
                       <option value="社会基盤工学科">社会基盤工学科</option>
                       <option value="建築学科">建築学科</option>
+                      <option value="その他">その他</option>
                     </select>
                   </div>
                   
