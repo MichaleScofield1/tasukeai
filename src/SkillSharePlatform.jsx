@@ -29,7 +29,7 @@ const SkillSharePlatform = () => {
     // 初回はユニークIDを生成
     return {
       userId: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      nickname: 'なおき',
+      nickname: '',
       skills: ['JavaScript', 'React', 'デザイン'],
       department: '情報工学科',
       year: '3年'
