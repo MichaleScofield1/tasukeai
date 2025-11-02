@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, User, X, CheckCircle, Lock } from 'lucide-react';
+import { Search, Plus, User, X, CheckCircle, Lock, Trash2 } from 'lucide-react';
 import { db } from './firebase';
 import { 
   collection, 
@@ -10,7 +10,8 @@ import {
   arrayUnion,
   serverTimestamp,
   query,
-  orderBy
+  orderBy,
+  deleteDoc
 } from 'firebase/firestore';
 
 const SkillSharePlatform = () => {
@@ -209,6 +210,24 @@ const SkillSharePlatform = () => {
     }
   };
 
+  const deleteThread = async (threadId, threadTitle) => {
+    if (!window.confirm(`「${threadTitle}」を削除しますか？\n※この操作は取り消せません`)) {
+      return;
+    }
+
+    try {
+      const threadRef = doc(db, 'threads', threadId);
+      await deleteDoc(threadRef);
+      
+      alert('スレッドを削除しました');
+      setSelectedThread(null);
+      loadThreads();
+    } catch (error) {
+      console.error('削除エラー:', error);
+      alert('スレッドの削除に失敗しました: ' + error.message);
+    }
+  };
+
   const filteredThreads = threads.filter(thread =>
     thread.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     thread.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -261,7 +280,7 @@ const SkillSharePlatform = () => {
               <input
                 type="text"
                 placeholder="スレッドを検索..."
-                style={{ width: '100％', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }}
+                style={{ width: '250px', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -280,11 +299,13 @@ const SkillSharePlatform = () => {
           {filteredThreads.map(thread => (
             <div 
               key={thread.id}
-              onClick={() => setSelectedThread(thread)}
-              style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', cursor: 'pointer', borderLeft: '4px solid #2563eb' }}
+              style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', borderLeft: '4px solid #2563eb' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div style={{ flex: 1 }}>
+                <div 
+                  style={{ flex: 1, cursor: 'pointer' }}
+                  onClick={() => setSelectedThread(thread)}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <h3 style={{ fontSize: '18px', fontWeight: '600' }}>{thread.title}</h3>
                     {thread.status === 'closed' && (
@@ -310,9 +331,23 @@ const SkillSharePlatform = () => {
                     ))}
                   </div>
                 </div>
-                <span style={{ fontSize: '14px', color: '#6b7280' }}>
-                  返信: {thread.responses?.length || 0}件
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', marginLeft: '16px' }}>
+                  <span style={{ fontSize: '14px', color: '#6b7280' }}>
+                    返信: {thread.responses?.length || 0}件
+                  </span>
+                  {thread.author === profile?.nickname && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteThread(thread.id, thread.title);
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      <Trash2 size={14} />
+                      削除
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -336,14 +371,14 @@ const SkillSharePlatform = () => {
                 <input
                   type="text"
                   placeholder="タイトル"
-                  style={{ width: '80％', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                   value={newThread.title}
                   onChange={(e) => setNewThread({...newThread, title: e.target.value})}
                 />
                 
                 <textarea
                   placeholder="内容"
-                  style={{ width: '80％', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', height: '160px', outline: 'none' }}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #d1d5db', borderRadius: '6px', height: '160px', outline: 'none' }}
                   value={newThread.content}
                   onChange={(e) => setNewThread({...newThread, content: e.target.value})}
                 />
@@ -401,15 +436,26 @@ const SkillSharePlatform = () => {
                       </span>
                     )}
                   </div>
-                  {selectedThread.status === 'open' && selectedThread.author === profile?.nickname && (
-                    <button 
-                      onClick={closeThreadDirectly}
-                      style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px', padding: '8px 16px', backgroundColor: '#10b981', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px' }}
-                    >
-                      <Lock size={16} />
-                      解決済みにする
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    {selectedThread.status === 'open' && selectedThread.author === profile?.nickname && (
+                      <button 
+                        onClick={closeThreadDirectly}
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '8px 16px', backgroundColor: '#10b981', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px' }}
+                      >
+                        <Lock size={16} />
+                        解決済みにする
+                      </button>
+                    )}
+                    {selectedThread.author === profile?.nickname && (
+                      <button 
+                        onClick={() => deleteThread(selectedThread.id, selectedThread.title)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px' }}
+                      >
+                        <Trash2 size={16} />
+                        削除
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <button 
                   onClick={() => setSelectedThread(null)}
