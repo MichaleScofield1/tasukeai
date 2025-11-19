@@ -42,7 +42,7 @@ const Login = ({ onLoginSuccess }) => {
         skills: []
       };
 
-      localStorage.setItem('userProfile', JSON.stringify(userProfile));
+      localStorage.setItem('authUser', JSON.stringify(userProfile));
       localStorage.setItem('authToken', data.token);
 
       alert(isLogin ? 'ログインしました' : '登録が完了しました');

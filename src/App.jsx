@@ -7,20 +7,19 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // ページ読み込み時にログイン状態を確認
     const checkAuth = () => {
       const token = localStorage.getItem('authToken');
-      const userProfile = localStorage.getItem('userProfile');
-      
+      const authUser = localStorage.getItem('authUser');  // ← 修正ポイント
+
       console.log('Token:', token);
-      console.log('UserProfile:', userProfile);
-      
-      if (token && userProfile) {
+      console.log('AuthUser:', authUser);
+
+      if (token && authUser) {
         setIsAuthenticated(true);
       } else {
         setIsAuthenticated(false);
       }
-      
+
       setIsLoading(false);
     };
 
@@ -33,11 +32,10 @@ const App = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('userProfile');
+    localStorage.removeItem('authUser');   // ← 修正ポイント
     setIsAuthenticated(false);
   };
 
-  // ローディング中
   if (isLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f9fafb' }}>
@@ -46,7 +44,6 @@ const App = () => {
     );
   }
 
-  // 認証状態に応じて表示を切り替え
   return (
     <>
       {isAuthenticated ? (
