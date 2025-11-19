@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ログイン - 助け合いの極み</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 32px;
+      color: #2563eb;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .subtitle {
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .form-group { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.3s;
+    }
+    input:focus, select:focus { border-color: #2563eb; }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background: #1d4ed8; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .success {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .toggle-link { text-align: center; margin-top: 24px; }
+    .toggle-link a {
+      color: #2563eb;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .register-fields { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>助け合いの極み</h1>
+    <p class="subtitle" id="subtitle">アカウントにログイン</p>
+
+    <div id="message"></div>
+
+    <form id="authForm">
+      <div class="form-group">
+        <label>学籍番号</label>
+        <input type="text" id="studentId" required placeholder="12345678">
+      </div>
+
+      <div class="form-group">
+        <label>パスワード</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+
+      <div class="register-fields" id="registerFields">
+
+        <div class="form-group">
+          <label>メールアドレス <span style="color: #dc2626;">*</span></label>
+          <input type="email" id="email" placeholder="xxxxxxx@ed.tus.ac.jp">
+        </div>
+
+        <div class="form-group">
+          <label>ニックネーム <span style="color: #dc2626;">*</span></label>
+          <input type="text" id="nickname" placeholder="例: 山田太郎">
+        </div>
+
+        <div class="form-group">
+          <label>学科</label>
+          <select id="department">
+            <option value="">選択してください</option>
+            <option value="情報計算科学科">情報計算科学科</option>
+            <option value="数理科学科">数理科学科</option>
+            <option value="先端物理学科">先端物理学科</option>
+            <option value="生命情報学科">生命情報学科</option>
+            <option value="先端科学科">先端科学科</option>
+            <option value="電気電子情報工学科">電気電子情報工学科</option>
+            <option value="経営システム工学科">経営システム工学科</option>
+            <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
+            <option value="社会基盤工学科">社会基盤工学科</option>
+            <option value="建築学科">建築学科</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>学年</label>
+          <select id="year">
+            <option value="">選択してください</option>
+            <option value="1年">1年</option>
+            <option value="2年">2年</option>
+            <option value="3年">3年</option>
+            <option value="4年">4年</option>
+            <option value="修士1年">修士1年</option>
+            <option value="修士2年">修士2年</option>
+          </select>
+        </div>
+
+      </div>
+
+      <button type="submit" id="submitBtn">ログイン</button>
+    </form>
+
+    <div class="toggle-link">
+      <a id="toggleLink">アカウントをお持ちでない方はこちら</a>
+    </div>
+  </div>
+
+  <script>
+    let isLogin = true;
+
+    const form = document.getElementById('authForm');
+    const toggleLink = document.getElementById('toggleLink');
+    const submitBtn = document.getElementById('submitBtn');
+    const subtitle = document.getElementById('subtitle');
+    const registerFields = document.getElementById('registerFields');
+    const messageDiv = document.getElementById('message');
+
+    // 新規登録 / ログインの切り替え
+    toggleLink.addEventListener('click', () => {
+      isLogin = !isLogin;
+
+      if (isLogin) {
+        subtitle.textContent = 'アカウントにログイン';
+        submitBtn.textContent = 'ログイン';
+        toggleLink.textContent = 'アカウントをお持ちでない方はこちら';
+        registerFields.style.display = 'none';
+      } else {
+        subtitle.textContent = '新規アカウント作成';
+        submitBtn.textContent = '新規登録';
+        toggleLink.textContent = '既にアカウントをお持ちの方はこちら';
+        registerFields.style.display = 'block';
+      }
+
+      messageDiv.innerHTML = '';
+    });
+
+    // 新規登録 / ログイン処理
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      messageDiv.innerHTML = '';
+      submitBtn.disabled = true;
+      submitBtn.textContent = '処理中...';
+
+      const studentId = document.getElementById('studentId').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const endpoint = isLogin ? '/api/login' : '/api/register';
+
+        const body = isLogin
+          ? { studentId, password }
+          : {
+              studentId,
+              password,
+              email: document.getElementById('email').value,
+              nickname: document.getElementById('nickname').value,
+              department: document.getElementById('department').value,
+              year: document.getElementById('year').value
+            };
+
+        const response = await fetch(`http://localhost:5000${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          messageDiv.innerHTML = `<div class="error">${data.error || 'エラーが発生しました'}</div>`;
+          submitBtn.disabled = false;
+          submitBtn.textContent = isLogin ? 'ログイン' : '新規登録';
+          return;
+        }
+
+        // 🔹 新規登録の場合（メール認証が必要）
+        if (!isLogin) {
+          messageDiv.innerHTML = `
+            <div class="success">
+              仮登録が完了しました！<br>
+              学内メールに届いた認証リンクをクリックしてからログインしてください。
+            </div>
+          `;
+          submitBtn.disabled = false;
+          submitBtn.textContent = '新規登録';
+          return; // ← ログイン処理を絶対に実行しない
+        }
+
+        // 🔹 ログインの場合（認証済）
+        const userProfile = { ...data.user, skills: [] };
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        localStorage.setItem('authToken', data.token);
+
+        messageDiv.innerHTML = `<div class="success">ログインが完了しました！</div>`;
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+
+      } catch (err) {
+        console.error('エラー:', err);
+        messageDiv.innerHTML = '<div class="error">サーバーに接続できません</div>';
+      }
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = isLogin ? 'ログイン' : '新規登録';
+    });
+  </script>
+</body>
+</html>

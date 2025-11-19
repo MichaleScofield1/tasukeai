@@ -23,6 +23,13 @@ const SkillSharePlatform = () => {
   const [reply, setReply] = useState('');
   const [profile, setProfile] = useState(null);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+    const handleLogout = () => {
+    if (window.confirm('ログアウトしますか？')) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userProfile');
+      window.location.href = '/login.html';
+    }
+  };
 
   const [newThread, setNewThread] = useState({
     title: '',
@@ -265,13 +272,21 @@ const SkillSharePlatform = () => {
             <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#2563eb', borderBottom: '4px solid #2563eb', paddingBottom: '8px' }}>
               助け合いの極み
             </h1>
-            <button 
-              onClick={() => setShowProfile(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-            >
-              <User size={20} />
-              {profile ? profile.nickname : 'プロフィール設定'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button 
+                onClick={() => setShowProfile(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+              >
+                <User size={20} />
+                {profile ? profile.nickname : 'プロフィール設定'}
+              </button>
+              <button 
+                onClick={handleLogout}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+              >
+                ログアウト
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '16px' }}>
