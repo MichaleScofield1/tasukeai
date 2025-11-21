@@ -111,7 +111,7 @@ const SkillSharePlatform = ({ onLogout }) => {
           const currentUserId = payload.userId;
           if (!currentUserId) return;
       
-          const res = await fetch(`${API_BASE}/api/profile/${currentUserId}`);
+          const res = await fetch(`${API_BASE}/api/profile?id=${currentUserId}`)
           const data = await res.json();
       
           if (res.ok) {
