@@ -4,7 +4,7 @@ import { Search, Plus, User, X, CheckCircle, Lock, Trash2 } from 'lucide-react';
 // ========================================================================
 // 1. 定数
 // ========================================================================
-const API_BASE = "https://tasukeai-auth-server-1.onrender.com";
+const API_BASE = "";
 const categories = ['機械学習', 'ウェブ開発', 'データ分析', 'デザイン', 'その他'];
 
 // ========================================================================
@@ -345,14 +345,7 @@ const SkillSharePlatform = ({ onLogout }) => {
     // 2-4. ユーティリティ/ハンドラー
     // --------------------------------------------------------------------
 
-    // ログアウト処理
-    const handleLogout = () => {
-        if (window.confirm('ログアウトしますか？')) {
-          // localStorageの認証情報をクリアするロジックはバックエンド依存のため、ここではリダイレクトのみ
-          window.location.href = '/login.html';
-        }
-    };
-
+    
     // スレッド検索のフィルタリング
     const filteredThreads = threads.filter(thread =>
         (thread.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||

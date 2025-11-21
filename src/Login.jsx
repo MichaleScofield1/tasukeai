@@ -24,11 +24,12 @@ const Login = ({ onLoginSuccess }) => {
         ? { studentId, password }
         : { studentId, password, nickname, department, year, email };
 
-      const response = await fetch(`https://tasukeai-auth-server-1.onrender.com${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      const response = await fetch(endpoint, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body)
+});
+
 
       const data = await response.json();
 
