@@ -18,7 +18,7 @@ const Login = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/login' : '/api/register';
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
       const body = isLogin
         ? { studentId, password }
