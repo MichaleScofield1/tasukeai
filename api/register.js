@@ -14,7 +14,8 @@ module.exports = async (req, res) => {
 
   const { studentId, email, password, nickname, department, year } = req.body;
 
-  if (!studentId || !email || !password || !nickname) {
+  // 🔥 必須チェックを最小構成に
+  if (!studentId || !email || !password) {
     return res.status(400).json({ error: "必須項目が不足しています" });
   }
 
@@ -23,20 +24,25 @@ module.exports = async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const userId = crypto.randomUUID();
 
+    // 🔥 任意項目は空文字にする（NULLエラー防止のため）
+    const safeNickname = nickname || "";
+    const safeDepartment = department || "";
+    const safeYear = year || "";
+
     const client = await pool.connect();
     await client.query(
       `
         INSERT INTO users (studentId, email, password, nickname, department, year, verificationToken, userId)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
       `,
-      [studentId, email, hashedPassword, nickname, department, year, verificationToken, userId]
+      [studentId, email, hashedPassword, safeNickname, safeDepartment, safeYear, verificationToken, userId]
     );
     client.release();
 
     // 認証URL
     const verifyUrl = `https://${req.headers.host}/api/verify-email?token=${verificationToken}`;
 
-    // メール送信（Resend）
+    // メール送信
     await sendVerifyEmail(email, verifyUrl);
 
     res.json({ message: "登録成功。メールを確認してください。" });
