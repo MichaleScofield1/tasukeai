@@ -4,7 +4,7 @@ import { Search, Plus, User, X, CheckCircle, Lock, Trash2 } from 'lucide-react';
 // ========================================================================
 // 1. 定数
 // ========================================================================
-const API_BASE = "https://tasukeai.vercel.app";
+const API_BASE = "";
 const categories = ['機械学習', 'ウェブ開発', 'データ分析', 'デザイン', 'その他'];
 
 // ========================================================================
@@ -227,7 +227,7 @@ const SkillSharePlatform = ({ onLogout }) => {
         if (!window.confirm(`「${threadTitle}」を削除しますか？\n※この操作は取り消せません`)) return;
     
         try {
-          await fetch(`${BASE}/api/delete-thread/${threadId}`, {
+            await fetch(`${API_BASE}/api/delete-thread/${threadId}`, {
             method: "DELETE"
           });
     
