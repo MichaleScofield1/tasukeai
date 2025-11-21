@@ -22,7 +22,7 @@ const Login = ({ onLoginSuccess }) => {
         ? { studentId, password }
         : { studentId, password, nickname, department, year };
 
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`https://tasukeai-auth-server-1.onrender.com${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
