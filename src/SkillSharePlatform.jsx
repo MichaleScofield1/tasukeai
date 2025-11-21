@@ -10,7 +10,7 @@ const categories = ['機械学習', 'ウェブ開発', 'データ分析', 'デ�
 // ========================================================================
 // 2. メインコンポーネント
 // ========================================================================
-const SkillSharePlatform = () => {
+const SkillSharePlatform = ({ onLogout }) => {
     // --------------------------------------------------------------------
     // 2-1. State管理
     // --------------------------------------------------------------------
@@ -403,11 +403,11 @@ const SkillSharePlatform = () => {
                   </button>
 
                   <button 
-                    onClick={handleLogout}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }} // flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-md
-                  >
-                    ログアウト
-                  </button>
+  onClick={onLogout}
+  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+>
+  ログアウト
+</button>
                 </div>
               </div>
 
