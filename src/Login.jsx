@@ -18,11 +18,11 @@ const Login = ({ onLoginSuccess }) => {
     setLoading(true);
 
     try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const endpoint = isLogin ? '/api/login' : '/api/register';
 
       const body = isLogin
         ? { studentId, password }
-        : { studentId, password, nickname, department, year, email }; // ← ★メール追加
+        : { studentId, password, nickname, department, year, email };
 
       const response = await fetch(`https://tasukeai-auth-server-1.onrender.com${endpoint}`, {
         method: 'POST',
