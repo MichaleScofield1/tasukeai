@@ -1,16 +1,22 @@
+// api/_utils/mailer.js (修正後)
+
 const nodemailer = require("nodemailer");
 
+// トランスポーターをモジュールロード時に一度だけ作成（コールドスタート時）
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER, // 環境変数名を見やすいように修正（server.jsで使用していたもの）
+    pass: process.env.GMAIL_APP_PASS, // 環境変数名を見やすいように修正
+  },
+});
+
 async function sendVerifyEmail(to, url) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  // fromアドレスを環境変数から取得
+  const fromAddress = process.env.GMAIL_FROM_ADDRESS || process.env.GMAIL_USER || "tasukeai.verify@gmail.com"; 
 
   await transporter.sendMail({
-    from: process.env.SMTP_USER,
+    from: `"助け合いの極み" <${fromAddress}>`,
     to,
     subject: "【助け合いの極み】メール認証のお願い",
     html: `
@@ -21,4 +27,5 @@ async function sendVerifyEmail(to, url) {
   });
 }
 
+// sendVerifyEmail 関数をエクスポート
 module.exports = { sendVerifyEmail };
