@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
     if (req.method === "GET") {
       const result = await query( // pool.query から query に変更
         // created_at -> createdat に修正
-        `SELECT * FROM threads ORDER BY createdat DESC` 
+        `SELECT * FROM threads ORDER BY created_at DESC` 
       );
       return res.status(200).json(result.rows);
     }
