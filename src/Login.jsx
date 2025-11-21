@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Lock, LogIn, UserPlus, Mail } from 'lucide-react';
 
-const API_BASE = "https://tasukeai-auth-server-1.onrender.com";
+const API_BASE = "https://tasukeai.vercel.app";
 
 const Login = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
