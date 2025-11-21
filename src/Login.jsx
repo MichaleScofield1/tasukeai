@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Lock, LogIn, UserPlus } from 'lucide-react';
+import { User, Lock, LogIn, UserPlus, Mail } from 'lucide-react';
 
 const Login = ({ onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -8,6 +8,7 @@ const Login = ({ onLoginSuccess }) => {
   const [nickname, setNickname] = useState('');
   const [department, setDepartment] = useState('');
   const [year, setYear] = useState('');
+  const [email, setEmail] = useState('');  // ← ★追加
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,9 +19,10 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       const endpoint = isLogin ? '/api/login' : '/api/register';
+
       const body = isLogin
         ? { studentId, password }
-        : { studentId, password, nickname, department, year };
+        : { studentId, password, nickname, department, year, email }; // ← ★メール追加
 
       const response = await fetch(`https://tasukeai-auth-server-1.onrender.com${endpoint}`, {
         method: 'POST',
@@ -36,7 +38,7 @@ const Login = ({ onLoginSuccess }) => {
         return;
       }
 
-      // ログイン成功
+      // ログイン成功処理
       const userProfile = {
         ...data.user,
         skills: []
@@ -45,7 +47,7 @@ const Login = ({ onLoginSuccess }) => {
       localStorage.setItem('authUser', JSON.stringify(userProfile));
       localStorage.setItem('authToken', data.token);
 
-      alert(isLogin ? 'ログインしました' : '登録が完了しました');
+      alert(isLogin ? 'ログインしました' : '登録が完了しました。メールを確認してください！');
       onLoginSuccess();
 
     } catch (err) {
@@ -97,6 +99,8 @@ const Login = ({ onLoginSuccess }) => {
 
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            
+            {/* 学籍番号 */}
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                 学籍番号
@@ -108,12 +112,13 @@ const Login = ({ onLoginSuccess }) => {
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   required
-                  placeholder="12345678"
+                  placeholder="@ed.tus.ac.jp"
                   style={{ width: '100%', paddingLeft: '44px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '14px' }}
                 />
               </div>
             </div>
 
+            {/* パスワード */}
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                 パスワード
@@ -131,8 +136,28 @@ const Login = ({ onLoginSuccess }) => {
               </div>
             </div>
 
+            {/* 新規登録の場合の入力欄 */}
             {!isLogin && (
               <>
+                {/* メールアドレス */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
+                    メールアドレス（@ed.tus.ac.jp）<span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Mail style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      placeholder="6323xxxx@ed.tus.ac.jp"
+                      style={{ width: '100%', paddingLeft: '44px', paddingRight: '12px', paddingTop: '10px', paddingBottom: '10px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '14px' }}
+                    />
+                  </div>
+                </div>
+
+                {/* ニックネーム */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                     ニックネーム <span style={{ color: '#dc2626' }}>*</span>
@@ -141,12 +166,13 @@ const Login = ({ onLoginSuccess }) => {
                     type="text"
                     value={nickname}
                     onChange={(e) => setNickname(e.target.value)}
-                    required={!isLogin}
-                    placeholder="例: 山田太郎"
+                    required
+                    placeholder="山田太郎"
                     style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '14px' }}
                   />
                 </div>
 
+                {/* 学科 */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                     学科
@@ -171,6 +197,7 @@ const Login = ({ onLoginSuccess }) => {
                   </select>
                 </div>
 
+                {/* 学年 */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                     学年
@@ -192,10 +219,25 @@ const Login = ({ onLoginSuccess }) => {
               </>
             )}
 
+            {/* 送信ボタン */}
             <button
               type="submit"
               disabled={loading}
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', backgroundColor: loading ? '#9ca3af' : '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: '500', fontSize: '16px' }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px',
+                backgroundColor: loading ? '#9ca3af' : '#2563eb',
+                color: 'white',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontWeight: '500',
+                fontSize: '16px'
+              }}
             >
               {loading ? (
                 '処理中...'
@@ -214,6 +256,7 @@ const Login = ({ onLoginSuccess }) => {
           </div>
         </form>
 
+        {/* モード切り替え */}
         <div style={{ marginTop: '24px', textAlign: 'center' }}>
           <button
             onClick={() => {
@@ -224,6 +267,7 @@ const Login = ({ onLoginSuccess }) => {
               setNickname('');
               setDepartment('');
               setYear('');
+              setEmail('');
             }}
             style={{ color: '#2563eb', fontSize: '14px', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
           >
