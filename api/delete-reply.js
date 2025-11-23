@@ -18,13 +18,14 @@ module.exports = async (req, res) => {
 
   try {
     // URLパスから replyId を抽出
-    // 例: /api/delete-reply/123 → replyId = 123
-    const urlParts = req.url.split('/');
+    // クエリパラメータを除去
+    const urlPath = req.url.split('?')[0];
+    const urlParts = urlPath.split('/').filter(Boolean);
     const replyId = urlParts[urlParts.length - 1];
 
     console.log("Deleting reply ID:", replyId);
 
-    if (!replyId || replyId === 'delete-reply') {
+    if (!replyId || replyId === 'delete-reply' || isNaN(replyId)) {
       return res.status(400).json({ error: "返信IDが指定されていません" });
     }
 

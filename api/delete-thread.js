@@ -18,13 +18,14 @@ module.exports = async (req, res) => {
 
   try {
     // URLパスから threadId を抽出
-    // 例: /api/delete-thread/123 → threadId = 123
-    const urlParts = req.url.split('/');
+    // クエリパラメータを除去
+    const urlPath = req.url.split('?')[0];
+    const urlParts = urlPath.split('/').filter(Boolean);
     const threadId = urlParts[urlParts.length - 1];
 
     console.log("Deleting thread ID:", threadId);
 
-    if (!threadId || threadId === 'delete-thread') {
+    if (!threadId || threadId === 'delete-thread' || isNaN(threadId)) {
       return res.status(400).json({ error: "スレッドIDが指定されていません" });
     }
 

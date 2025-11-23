@@ -18,14 +18,31 @@ module.exports = async (req, res) => {
 
   try {
     // URLパスから threadId を抽出
-    // 例: /api/close-thread/123 → threadId = 123
-    const urlParts = req.url.split('/');
+    // クエリパラメータを除去して、純粋なIDだけを取得
+    const urlPath = req.url.split('?')[0]; // クエリパラメータを削除
+    const urlParts = urlPath.split('/').filter(Boolean);
     const threadId = urlParts[urlParts.length - 1];
 
+    console.log("Full URL:", req.url);
+    console.log("Clean path:", urlPath);
+    console.log("URL Parts:", urlParts);
     console.log("Closing thread ID:", threadId);
 
-    if (!threadId || threadId === 'close-thread') {
+    if (!threadId || threadId === 'close-thread' || isNaN(threadId)) {
+      console.error("Invalid thread ID:", threadId);
       return res.status(400).json({ error: "スレッドIDが指定されていません" });
+    }
+
+    // まず、スレッドが存在するか確認
+    const checkResult = await query(
+      `SELECT * FROM threads WHERE id = $1`,
+      [threadId]
+    );
+
+    console.log("Thread found:", checkResult.rows.length > 0);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ error: "スレッドが見つかりません" });
     }
 
     // スレッドのステータスを 'closed' に更新
@@ -33,10 +50,6 @@ module.exports = async (req, res) => {
       `UPDATE threads SET status = 'closed' WHERE id = $1 RETURNING *`,
       [threadId]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "スレッドが見つかりません" });
-    }
 
     console.log("Thread closed successfully:", result.rows[0]);
 
