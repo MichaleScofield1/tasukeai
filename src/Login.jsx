@@ -112,14 +112,24 @@ const Login = ({ onLoginSuccess }) => {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学籍番号</label>
               <div style={{ position: 'relative' }}>
-                <User style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
+                <User style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} size={20} />
                 <input
                   type="text"
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   required
                   placeholder="学籍番号を入力"
-                  style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  style={{ 
+                    width: '100%', 
+                    paddingLeft: '44px', 
+                    paddingRight: '16px',
+                    paddingTop: '10px',
+                    paddingBottom: '10px',
+                    border: '1px solid #d1d5db', 
+                    borderRadius: '8px', 
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
                 />
               </div>
             </div>
@@ -128,14 +138,24 @@ const Login = ({ onLoginSuccess }) => {
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>パスワード</label>
               <div style={{ position: 'relative' }}>
-                <Lock style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
+                <Lock style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} size={20} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  style={{ 
+                    width: '100%', 
+                    paddingLeft: '44px', 
+                    paddingRight: '16px',
+                    paddingTop: '10px',
+                    paddingBottom: '10px',
+                    border: '1px solid #d1d5db', 
+                    borderRadius: '8px', 
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
                 />
               </div>
             </div>
