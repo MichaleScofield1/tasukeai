@@ -1,5 +1,3 @@
-// api/profile.js
-
 const jwt = require("jsonwebtoken");
 const pool = require("./_utils/db");
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -8,7 +6,7 @@ module.exports = async (req, res) => {
   try {
     if (req.method === "OPTIONS") return res.status(200).end();
 
-    // Authorization ヘッダーからTOKEN取得
+    // Authorization ヘッダーから token を取得
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({ error: "No token provided" });
@@ -16,16 +14,15 @@ module.exports = async (req, res) => {
 
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, SECRET_KEY);
-    const userId = decoded.userId; // JWTから userId を取得
+    const userId = decoded.userId;
 
-    // ────────────────────────────────────────────────────
-    // GET: プロフィール取得
-    // ────────────────────────────────────────────────────
+    // =========================
+    // GET: 自分のプロフィール取得
+    // =========================
     if (req.method === "GET") {
       const result = await pool.query(
-        `SELECT userid, studentid, email, nickname, skills, department, year
-         FROM users 
-         WHERE userid = $1`,
+        `SELECT userid, studentid, email, nickname, skills, department, year 
+         FROM users WHERE userid = $1`,
         [userId]
       );
 
@@ -36,9 +33,9 @@ module.exports = async (req, res) => {
       return res.status(200).json(result.rows[0]);
     }
 
-    // ────────────────────────────────────────────────────
+    // =========================
     // PUT: プロフィール更新
-    // ────────────────────────────────────────────────────
+    // =========================
     if (req.method === "PUT") {
       const { nickname, skills, department, year } = req.body;
 
@@ -60,13 +57,10 @@ module.exports = async (req, res) => {
       return res.status(200).json(result.rows[0]);
     }
 
-    // ────────────────────────────────────────────────────
-    // その他のメソッドは405
-    // ────────────────────────────────────────────────────
-    return res.status(405).json({ error: "Method Not Allowed" });
+    res.status(405).json({ error: "Method not allowed" });
 
   } catch (err) {
     console.error("profile error:", err);
-    return res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 };
