@@ -14,6 +14,9 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // ----------------------------------------------------------
+  // 送信処理 ★修正箇所★
+  // ----------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -21,6 +24,7 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       const endpoint = isLogin ? '/api/login' : '/api/register';
+
       const body = isLogin
         ? { studentId, password }
         : { studentId, password, nickname, department, year, email };
@@ -44,12 +48,15 @@ const Login = ({ onLoginSuccess }) => {
         return;
       }
 
+      // ★★★ ここが重要な変更点 ★★★
       if (isLogin) {
+        // ログイン成功時、トークンをApp.jsxに渡す
         alert('ログインしました');
-        onLoginSuccess(data.token);
+        onLoginSuccess(data.token); // ← トークンを渡す
       } else {
+        // 新規登録時
         alert('登録が完了しました。メールを確認してください！');
-        setIsLogin(true);
+        setIsLogin(true); // ログイン画面に切り替え
       }
 
     } catch (err) {
@@ -59,6 +66,10 @@ const Login = ({ onLoginSuccess }) => {
 
     setLoading(false);
   };
+
+  // ----------------------------------------------------------
+  // UI（元のコードそのまま）
+  // ----------------------------------------------------------
 
   const modalOverlayStyle = {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -97,6 +108,7 @@ const Login = ({ onLoginSuccess }) => {
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
+            {/* 学籍番号 */}
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学籍番号</label>
               <div style={{ position: 'relative' }}>
@@ -122,6 +134,7 @@ const Login = ({ onLoginSuccess }) => {
               </div>
             </div>
 
+            {/* パスワード */}
             <div>
               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>パスワード</label>
               <div style={{ position: 'relative' }}>
@@ -149,33 +162,25 @@ const Login = ({ onLoginSuccess }) => {
 
             {!isLogin && (
               <>
+                {/* メールアドレス */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                     メールアドレス（@ed.tus.ac.jp）<span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
-                    <Mail style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} size={20} />
+                    <Mail style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="6323xxxx@ed.tus.ac.jp"
-                      style={{ 
-                        width: '100%', 
-                        paddingLeft: '44px', 
-                        paddingRight: '16px',
-                        paddingTop: '10px',
-                        paddingBottom: '10px',
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '8px', 
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                      }}
+                      style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                     />
                   </div>
                 </div>
 
+                {/* ニックネーム */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>ニックネーム</label>
                   <input
@@ -184,17 +189,11 @@ const Login = ({ onLoginSuccess }) => {
                     onChange={(e) => setNickname(e.target.value)}
                     required
                     placeholder="ニックネームを入力"
-                    style={{ 
-                      width: '100%', 
-                      padding: '10px',
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '8px', 
-                      fontSize: '14px',
-                      boxSizing: 'border-box'
-                    }}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                   />
                 </div>
 
+                {/* 学科 */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学科</label>
                   <input
@@ -203,31 +202,18 @@ const Login = ({ onLoginSuccess }) => {
                     onChange={(e) => setDepartment(e.target.value)}
                     required
                     placeholder="例: 情報工学科"
-                    style={{ 
-                      width: '100%', 
-                      padding: '10px',
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '8px', 
-                      fontSize: '14px',
-                      boxSizing: 'border-box'
-                    }}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                   />
                 </div>
 
+                {/* 学年 */}
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学年</label>
                   <select
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
                     required
-                    style={{ 
-                      width: '100%', 
-                      padding: '10px',
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '8px', 
-                      fontSize: '14px',
-                      boxSizing: 'border-box'
-                    }}
+                    style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                   >
                     <option value="">選択してください</option>
                     <option value="1年">1年</option>
