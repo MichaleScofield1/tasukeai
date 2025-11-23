@@ -1,6 +1,6 @@
 {
     "rewrites": [
-    { "source": "/api/threads", "destination": "/api/threads.js" },
+    { "source": "/api/threads", "destination": "/api/threads-api.js" },
     { "source": "/api/replies", "destination": "/api/replies.js" },
     { "source": "/api/profile", "destination": "/api/profile.js" },
     { "source": "/api/login", "destination": "/api/login.js" },
