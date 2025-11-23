@@ -71,6 +71,8 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
       try {
         const res = await fetch(`${API_BASE}/api/threads`);
         const data = await res.json();
+        console.log('📋 取得したスレッドデータ:', data); // ← デバッグ用ログ
+        console.log('📋 最初のスレッド:', data[0]); // ← 詳細確認
         setThreads(data);
       } catch (error) {
         console.error("スレッド読み込みエラー:", error);
@@ -243,11 +245,18 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
         }
     
         try {
+          console.log('📤 返信データ:', {
+            threadId: selectedThread.id,
+            authorId: profile.userid,
+            authorNickname: profile.nickname,
+            content: reply
+          });
+
           const res = await fetch(`${API_BASE}/api/replies`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              threadId: selectedThread.id,
+              threadId: selectedThread.id,  // ← これが重要！
               authorId: profile.userid,
               authorNickname: profile.nickname,
               content: reply
@@ -255,7 +264,13 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
           });
     
           const data = await res.json();
-          if (!res.ok) throw new Error(data.message);
+          
+          if (!res.ok) {
+            console.error('❌ 返信エラー:', data);
+            throw new Error(data.message || data.error);
+          }
+
+          console.log('✅ 返信成功:', data);
     
           setReply('');
     
@@ -269,7 +284,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     
         } catch (error) {
           console.error("返信エラー:", error);
-          alert("返信の投稿に失敗しました");
+          alert("返信の投稿に失敗しました: " + error.message);
         }
     };
 

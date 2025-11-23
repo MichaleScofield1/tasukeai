@@ -19,17 +19,41 @@ module.exports = async (req, res) => {
     }
 
     // POST（返信投稿）
-    if (req.method === "POST") {
-      const { threadId, authorId, authorNickname, content } = req.body;
+if (req.method === "POST") {
+  const { threadId, authorId, authorNickname, content } = req.body;
 
-      const result = await query(
-        `INSERT INTO replies (thread_id, author_id, author_nickname, content)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [threadId, authorId, authorNickname, content]
-      );
+  // ★ デバッグログ追加
+  console.log("📥 Received reply data:", { 
+    threadId, 
+    threadIdType: typeof threadId,
+    authorId, 
+    authorNickname, 
+    content 
+  });
 
-      return res.status(201).json(result.rows[0]);
-    }
+  // バリデーション追加
+  if (!threadId || !authorId || !authorNickname || !content) {
+    console.error("❌ Missing fields");
+    return res.status(400).json({ error: "必要な情報が不足しています" });
+  }
+
+  // threadIdが数値か確認
+  const numericThreadId = parseInt(threadId);
+  if (isNaN(numericThreadId)) {
+    console.error("❌ Invalid threadId:", threadId);
+    return res.status(400).json({ error: "無効なスレッドIDです" });
+  }
+
+  const result = await query(
+    `INSERT INTO replies (thread_id, author_id, author_nickname, content)
+     VALUES ($1, $2, $3, $4) RETURNING *`,
+    [numericThreadId, authorId, authorNickname, content]
+  );
+
+  console.log("✅ Reply created:", result.rows[0]);
+
+  return res.status(201).json(result.rows[0]);
+}
 
     res.status(405).json({ error: "Method not allowed" });
 
