@@ -160,7 +160,7 @@ const Login = ({ onLoginSuccess }) => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      placeholder="6323xxxx@ed.tus.ac.jp"
+                      placeholder="xxxxxxxx@ed.tus.ac.jp"
                       style={{ 
                         width: '100%', 
                         paddingLeft: '44px', 
@@ -196,23 +196,34 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学科</label>
-                  <input
-                    type="text"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    required
-                    placeholder="例: 情報工学科"
-                    style={{ 
-                      width: '100%', 
-                      padding: '10px',
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '8px', 
-                      fontSize: '14px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
+  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学科</label>
+  <select
+    value={department}
+    onChange={(e) => setDepartment(e.target.value)}
+    required
+    style={{ 
+      width: '100%', 
+      padding: '10px',
+      border: '1px solid #d1d5db', 
+      borderRadius: '8px', 
+      fontSize: '14px',
+      boxSizing: 'border-box',
+      backgroundColor: 'white'
+    }}
+  >
+    <option value="">選択してください</option>
+    <option value="情報計算科学科">情報計算科学科</option>
+    <option value="数理科学科">数理科学科</option>
+    <option value="先端物理学科">先端物理学科</option>
+    <option value="生命情報学科">生命情報学科</option>
+    <option value="電気電子情報工学科">電気電子情報工学科</option>
+    <option value="経営システム工学科">経営システム工学科</option>
+    <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
+    <option value="社会基盤工学科">社会基盤工学科</option>
+    <option value="建築学科">建築学科</option>
+    <option value="その他">その他</option>
+  </select>
+</div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学年</label>
@@ -234,6 +245,7 @@ const Login = ({ onLoginSuccess }) => {
                     <option value="2年">2年</option>
                     <option value="3年">3年</option>
                     <option value="4年">4年</option>
+                    <option value="その他">その他</option>
                   </select>
                 </div>
               </>
