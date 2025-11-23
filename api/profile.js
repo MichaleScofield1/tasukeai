@@ -1,56 +1,35 @@
-// api/profile/[id].js または api/profile.js
+// api/profile.js
 
+const jwt = require("jsonwebtoken");
 const pool = require("./_utils/db");
+const SECRET_KEY = process.env.JWT_SECRET;
 
 module.exports = async (req, res) => {
-  // req.query.id は、URLからユーザーIDを受け取っていることを前提とする
-  const userId = req.query.id; 
-
   try {
-    // CORS OPTIONS メソッドの処理 (Vercelでは必須ではないが、フロントの互換性のため残す)
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
+    if (req.method === "OPTIONS") return res.status(200).end();
+
+    // ★ 1. Authorization ヘッダーからトークン取得
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: "No token provided" });
     }
 
-    if (req.method === "GET") {
-      const result = await pool.query(
-        // SELECT 句の全てのカラム名を小文字のDBスキーマに合わせる
-        `SELECT id, studentid, email, nickname, skills, department, year, userid
-         FROM users WHERE userid = $1`, // <--- userid で検索
-        [userId]
-      );
+    const token = authHeader.split(" ")[1]; // "Bearer xxx"
+    const decoded = jwt.verify(token, SECRET_KEY);
+    const userId = decoded.userId;
 
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
+    // ★ 2. DB からログインユーザー情報を取得
+    const result = await pool.query(
+      `SELECT userid, studentid, email, nickname, skills, department, year 
+       FROM users WHERE userid = $1`,
+      [userId]
+    );
 
-      // 取得したデータ（小文字キー）を返す
-      return res.status(200).json(result.rows[0]); 
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    if (req.method === "PUT") {
-      const { nickname, skills, department, year } = req.body;
-
-      const result = await pool.query(
-        `UPDATE users
-         SET nickname = $1,
-             skills = $2,
-             department = $3,
-             year = $4
-         WHERE userid = $5 
-         RETURNING id, nickname, skills, department, year`, // <--- userid で特定
-        [nickname, skills, department, year, userId]
-      );
-
-      // データの更新がなかった場合 (WHERE句がマッチしなかった場合)
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      return res.status(200).json(result.rows[0]);
-    }
-
-    res.status(405).json({ error: "Method not allowed" });
+    return res.status(200).json(result.rows[0]);
 
   } catch (err) {
     console.error("profile error:", err);

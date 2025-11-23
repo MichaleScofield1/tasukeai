@@ -106,12 +106,17 @@ const SkillSharePlatform = ({ onLogout }) => {
         if (!token) return;
       
         try {
-          // JWTトークンをデコードしてuserIdを取得
+          // JWTトークンをデコードしてuseridを取得
           const payload = JSON.parse(atob(token.split('.')[1]));
           const currentUserId = payload.userId;
           if (!currentUserId) return;
       
-          const res = await fetch(`${API_BASE}/api/profile?id=${currentUserId}`)
+          const res = await fetch(`${API_BASE}/api/profile`, {
+  headers: {
+    "Authorization": `Bearer ${token}`
+  }
+});
+
           const data = await res.json();
       
           if (res.ok) {
@@ -146,7 +151,7 @@ const SkillSharePlatform = ({ onLogout }) => {
             setProfile(currentUser);
           }
       
-          const currentUserId = currentUser.userId;
+          const currentUserId = currentUser.userid;
           if (!currentUserId) {
             alert("ユーザーIDが取得できません。再ログインしてください。");
             return;
@@ -162,11 +167,17 @@ const SkillSharePlatform = ({ onLogout }) => {
           };
       
           // 更新リクエスト
-          const res = await fetch(`${API_BASE}/api/profile/${currentUserId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updated)
-          });
+          const token = localStorage.getItem("authToken");
+
+const res = await fetch(`${API_BASE}/api/profile`, {
+  method: "PUT",
+  headers: { 
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  },
+  body: JSON.stringify(updated)
+});
+
       
           const data = await res.json();
       
@@ -195,17 +206,23 @@ const SkillSharePlatform = ({ onLogout }) => {
         }
     
         try {
-          const res = await fetch(`${API_BASE}/api/threads`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: newThread.title,
-              content: newThread.content,
-              authorId: profile.userId,
-              authorNickname: profile.nickname,
-              tags: newThread.tags.join(","),
-            })
-          });
+  const token = localStorage.getItem("authToken");
+
+  const res = await fetch(`${API_BASE}/api/threads`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`   // ← ★ JWT を追加する
+    },
+    body: JSON.stringify({
+      title: newThread.title,
+      content: newThread.content,
+      authorId: profile.userid,            // ← ★ DB のカラムに合わせる
+      authorNickname: profile.nickname,
+      tags: newThread.tags.join(","),
+    })
+  });
+
     
           const data = await res.json();
     
@@ -244,7 +261,7 @@ const SkillSharePlatform = ({ onLogout }) => {
 
     // スレッドのクローズ（解決済みにする）
     const closeThreadDirectly = async () => {
-        if (!selectedThread || selectedThread.authorId !== profile.userId) return; // 投稿者のみクローズ可能
+        if (!selectedThread || selectedThread.authorId !== profile.userid) return; // 投稿者のみクローズ可能
     
         if (!window.confirm('このスレッドを解決済みにしますか？\n※この操作は取り消せません')) {
           return;
@@ -284,7 +301,7 @@ const SkillSharePlatform = ({ onLogout }) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               threadId: selectedThread.id,
-              authorId: profile.userId,
+              authorId: profile.userid,
               authorNickname: profile.nickname,
               content: reply
             })
@@ -466,7 +483,7 @@ const SkillSharePlatform = ({ onLogout }) => {
                           </span>
                         )}
 
-                        {thread.authorId === profile?.userId && (
+                        {thread.authorId === profile?.userid && (
                           <span style={{ padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '4px', fontSize: '12px' }}> {/* px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs */}
                             あなたの投稿
                           </span>
@@ -487,7 +504,7 @@ const SkillSharePlatform = ({ onLogout }) => {
                     </div>
                     
                     {/* 削除ボタン */}
-                    {thread.authorId === profile?.userId && (
+                    {thread.authorId === profile?.userid && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -612,7 +629,7 @@ const SkillSharePlatform = ({ onLogout }) => {
                       </div>
 
                       {/* スレッド投稿者のみに表示されるクローズボタン */}
-                      {selectedThread.status === 'open' && selectedThread.authorId === profile?.userId && (
+                      {selectedThread.status === 'open' && selectedThread.authorId === profile?.userid && (
                         <button 
                           onClick={closeThreadDirectly}
                           style={{
@@ -672,7 +689,7 @@ const SkillSharePlatform = ({ onLogout }) => {
                       </p>
 
                       {/* 自分の返信だけ削除ボタンを表示 */}
-                      {response.authorId === profile?.userId && (
+                      {response.authorId === profile?.userid && (
                         <button
                           onClick={() => deleteReply(response.id)}
                           style={{
