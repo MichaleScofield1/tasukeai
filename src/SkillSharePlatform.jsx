@@ -148,19 +148,22 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
           const token = localStorage.getItem("authToken");
 
           const res = await fetch(`${API_BASE}/api/threads`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              title: newThread.title,
-              content: newThread.content,
-              authorId: profile.userid,
-              authorNickname: profile.nickname,
-              tags: newThread.tags.join(","),
-            })
-          });
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({
+        title: newThread.title,
+        content: newThread.content,
+        authorId: profile.userid,
+        authorNickname: profile.nickname,
+        authorDepartment: profile.department,
+        authorYear: profile.year,
+        tags: newThread.tags.join(",")
+    })
+});
+
     
           const data = await res.json();
     
