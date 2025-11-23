@@ -427,8 +427,10 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                         )}
                       </div>
 
-                      <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}> {/* text-sm text-gray-600 mb-2 */}
-                        投稿者: {thread.authorNickname}
+                      <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}>
+                      投稿者: {thread.authorNickname}
+                      {thread.authorDepartment && ` / ${thread.authorDepartment}`}
+                      {thread.authorYear && ` / ${thread.authorYear}年`}
                       </p>
 
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}> {/* flex flex-wrap gap-1 */}
