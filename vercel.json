@@ -1,14 +1,13 @@
 {
-    "rewrites": [
+  "rewrites": [
     { "source": "/api/threads", "destination": "/api/threads-api.js" },
     { "source": "/api/replies", "destination": "/api/replies.js" },
     { "source": "/api/profile", "destination": "/api/profile.js" },
     { "source": "/api/login", "destination": "/api/login.js" },
     { "source": "/api/register", "destination": "/api/register.js" },
     { "source": "/api/verify-email", "destination": "/api/verify-email.js" },
-
     { "source": "/api/close-thread/:id", "destination": "/api/close-thread.js" },
     { "source": "/api/delete-thread/:id", "destination": "/api/delete-thread.js" },
     { "source": "/api/delete-reply/:id", "destination": "/api/delete-reply.js" }
-    ]
+  ]
 }
