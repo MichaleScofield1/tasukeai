@@ -139,35 +139,41 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
           return;
         }
     
-        if (!profile) {
-          alert('プロフィールを設定してください');
+        if (!profile || !profile.nickname) {
+          alert('プロフィールでニックネームを設定してください');
           return;
         }
     
         try {
           const token = localStorage.getItem("authToken");
 
-          const res = await fetch(`${API_BASE}/api/threads`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify({
-        title: newThread.title,
-        content: newThread.content,
-        authorId: profile.userid,
-        authorNickname: profile.nickname,
-        authorDepartment: profile.department,
-        authorYear: profile.year,
-        tags: newThread.tags.join(",")
-    })
-});
+          // ★ デバッグ用ログ
+          console.log('スレッド作成データ:', {
+            authorId: profile.userid,
+            authorNickname: profile.nickname,
+            profile: profile
+          });
 
+          const res = await fetch(`${API_BASE}/api/threads`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              title: newThread.title,
+              content: newThread.content,
+              authorId: profile.userid,
+              authorNickname: profile.nickname, // ★ profileから直接取得
+              tags: newThread.tags.join(","),
+            })
+          });
     
           const data = await res.json();
     
           if (!res.ok) throw new Error(data.message || "スレッド作成に失敗");
+    
+          console.log('スレッド作成成功:', data);
     
           setNewThread({ title: '', content: '', tags: [] });
           setShowNewThread(false);
@@ -226,6 +232,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
           alert("スレッドのクローズに失敗しました");
         }
     };
+
 
     // 返信の追加
     const addReply = async () => {
@@ -309,20 +316,20 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
         (thread.tags || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // モーダル用スタイル定義 (Tailwind CSS風のインラインスタイル)
+    // モーダル用スタイル定義
     const modalOverlayStyle = {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', // bg-black/50
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       zIndex: 9999
     };
 
     const modalContentStyle = {
-      backgroundColor: 'white', borderRadius: '12px', // rounded-xl
-      padding: '24px', // p-6
+      backgroundColor: 'white', borderRadius: '12px',
+      padding: '24px',
       maxWidth: '700px', width: '90%', maxHeight: '85vh',
       overflowY: 'auto',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' // shadow-xl
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
     };
 
 
@@ -331,44 +338,44 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     // --------------------------------------------------------------------
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}> {/* min-h-screen bg-gray-50 */}
-          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}> {/* max-w-7xl mx-auto p-4 */}
+        <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}>
             
             {/* ヘッダーとコントロールパネル */}
-            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}> {/* bg-white rounded-lg shadow-md p-6 mb-6 */}
+            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
               
               {/* タイトルとユーザーアクション */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}> {/* flex justify-between items-center mb-4 */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#2563eb', borderBottom: '4px solid #2563eb', paddingBottom: '8px' }}>
                   助け合いの極み
                 </h1>
 
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}> {/* flex gap-2 items-center */}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <button 
                     onClick={() => setShowProfile(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: 'none', cursor: 'pointer' }} // flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                   >
                     <User size={20} />
                     {profile ? profile.nickname : 'プロフィール設定'}
                   </button>
 
                   <button 
-  onClick={onLogout}
-  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
->
-  ログアウト
-</button>
+                    onClick={onLogout}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                  >
+                    ログアウト
+                  </button>
                 </div>
               </div>
 
               {/* 検索と新規スレッドボタン */}
-              <div style={{ display: 'flex', gap: '16px' }}> {/* flex gap-4 */}
+              <div style={{ display: 'flex', gap: '16px' }}>
                 <div style={{ flex: 1, position: 'relative' }}>
-                  <Search style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} /> {/* absolute left-3 top-3 text-gray-400 */}
+                  <Search style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
                   <input
                     type="text"
                     placeholder="スレッドを検索..."
-                    style={{ width: '250px', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }} // w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-500
+                    style={{ width: '250px', paddingLeft: '40px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none' }}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -376,7 +383,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
 
                 <button 
                   onClick={() => setShowNewThread(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }} // flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
                 >
                   <Plus size={20} />
                   新規スレッド
@@ -385,7 +392,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
             </div>
 
             {/* スレッド一覧 */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}> {/* grid grid-cols-1 gap-4 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
               {filteredThreads.map(thread => (
                 <div 
                   key={thread.id}
@@ -394,10 +401,10 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                     padding: '16px', 
                     borderRadius: '8px', 
                     boxShadow: '0 1px 3px rgba(0,0,0,0.1)', 
-                    borderLeft: '4px solid #2563eb', // border-l-4 border-blue-600
+                    borderLeft: '4px solid #2563eb',
                     transition: 'transform 0.1s',
                     ':hover': { transform: 'translateY(-2px)' }
-                  }} // bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-transform
+                  }}
                   onClick={async () => {
                     const replies = await loadReplies(thread.id);
 
@@ -410,35 +417,38 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                     setSelectedThread(newThreadData);
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}> {/* flex justify-between items-start */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                     
                     <div style={{ flex: 1, cursor: 'pointer' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}> {/* flex items-center gap-2 mb-2 */}
-                        <h3 style={{ fontSize: '18px', fontWeight: '600' }}>{thread.title}</h3> {/* text-lg font-semibold */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: '600' }}>{thread.title}</h3>
 
                         {thread.status === 'closed' && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '4px', fontSize: '12px' }}> {/* flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs */}
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '2px 8px', backgroundColor: '#d1fae5', color: '#065f46', borderRadius: '4px', fontSize: '12px' }}>
                             <CheckCircle size={14} />
                             解決済み
                           </span>
                         )}
 
                         {thread.authorId === profile?.userid && (
-                          <span style={{ padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '4px', fontSize: '12px' }}> {/* px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs */}
+                          <span style={{ padding: '2px 8px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '4px', fontSize: '12px' }}>
                             あなたの投稿
                           </span>
                         )}
                       </div>
 
                       <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}>
-                      投稿者: {thread.authorNickname}
-                      {thread.authorDepartment && ` / ${thread.authorDepartment}`}
-                      {thread.authorYear && ` / ${thread.authorYear}年`}
+                        投稿者: {thread.authorNickname}
+                        {thread.authorDepartment && (
+                          <span style={{ marginLeft: '8px', color: '#6b7280' }}>
+                            ({thread.authorDepartment} {thread.authorYear})
+                          </span>
+                        )}
                       </p>
 
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}> {/* flex flex-wrap gap-1 */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {(thread.tags || "").split(",").filter(t => t).map((tag, idx) => (
-                          <span key={idx} style={{ padding: '2px 8px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: '9999px', fontSize: '12px' }}> {/* px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs */}
+                          <span key={idx} style={{ padding: '2px 8px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: '9999px', fontSize: '12px' }}>
                             #{tag}
                           </span>
                         ))}
@@ -452,7 +462,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                           e.stopPropagation();
                           deleteThread(thread.id, thread.title);
                         }}
-                        style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }} // flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-md
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 12px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                       >
                         <Trash2 size={14} />
                         削除
@@ -464,9 +474,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
               ))}
             </div>
 
-            {/* -------------------------------------------------------------------- */}
             {/* 新規スレッド作成モーダル */}
-            {/* -------------------------------------------------------------------- */}
             {showNewThread && (
               <div style={modalOverlayStyle} onClick={() => setShowNewThread(false)}>
                 <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
@@ -517,8 +525,8 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                               borderRadius: "6px",
                               border: "none",
                               cursor: "pointer",
-                              backgroundColor: newThread.tags.includes(cat) ? "#2563eb" : "#e5e7eb", // bg-blue-600 vs bg-gray-200
-                              color: newThread.tags.includes(cat) ? "white" : "#374151", // text-white vs text-gray-700
+                              backgroundColor: newThread.tags.includes(cat) ? "#2563eb" : "#e5e7eb",
+                              color: newThread.tags.includes(cat) ? "white" : "#374151",
                             }}
                           >
                             {cat}
@@ -543,13 +551,12 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
               </div>
             )}
 
-            {/* -------------------------------------------------------------------- */}
-            {/* スレッド詳細モーダル */}
-            {/* -------------------------------------------------------------------- */}
+            {/* スレッド詳細モーダル（省略 - 元のコードと同じ）*/}
             {selectedThread && (
               <div style={modalOverlayStyle} onClick={() => setSelectedThread(null)}>
                 <div style={{...modalContentStyle, maxWidth: '900px'}} onClick={(e) => e.stopPropagation()}>
                   
+                  {/* ヘッダー部分は元のコードと同じなので省略 */}
                   <div style={{
                     display: 'flex', justifyContent: 'space-between',
                     alignItems: 'center', marginBottom: '16px',
@@ -570,7 +577,6 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                         )}
                       </div>
 
-                      {/* スレッド投稿者のみに表示されるクローズボタン */}
                       {selectedThread.status === 'open' && selectedThread.authorId === profile?.userid && (
                         <button 
                           onClick={closeThreadDirectly}
@@ -598,6 +604,11 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                     
                     <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '8px' }}>
                       名前: {selectedThread.authorNickname}
+                      {selectedThread.authorDepartment && (
+                        <span style={{ marginLeft: '8px', color: '#6b7280' }}>
+                          ({selectedThread.authorDepartment} {selectedThread.authorYear})
+                        </span>
+                      )}
                     </p>
 
                     <p style={{ color: '#1f2937', whiteSpace: 'pre-wrap' }}>
@@ -630,7 +641,6 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                         {response.content}
                       </p>
 
-                      {/* 自分の返信だけ削除ボタンを表示 */}
                       {response.authorId === profile?.userid && (
                         <button
                           onClick={() => deleteReply(response.id)}
@@ -675,7 +685,6 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                     </div>
                   )}
 
-                  {/* 解決済みメッセージ */}
                   {selectedThread.status === "closed" && (
                     <div style={{
                       marginTop: '24px', padding: '16px',
@@ -691,9 +700,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
               </div>
             )}
 
-            {/* -------------------------------------------------------------------- */}
             {/* プロフィール設定モーダル */}
-            {/* -------------------------------------------------------------------- */}
             {showProfile && (
               <div style={modalOverlayStyle} onClick={profile ? () => setShowProfile(false) : null}>
                 <div style={{...modalContentStyle, maxWidth: '500px'}} onClick={(e) => e.stopPropagation()}>
@@ -790,7 +797,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                       onClick={handleProfileSubmit}
                       disabled={!profileForm.nickname.trim()}
                       style={{
-                        width: '100%', backgroundColor: profileForm.nickname.trim() ? '#2563eb' : '#9ca3af', // ニックネームが空の場合はグレーアウト
+                        width: '100%', backgroundColor: profileForm.nickname.trim() ? '#2563eb' : '#9ca3af',
                         color: 'white', padding: '8px',
                         borderRadius: '6px', border: 'none',
                         cursor: profileForm.nickname.trim() ? 'pointer' : 'not-allowed',
