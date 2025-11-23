@@ -650,6 +650,11 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                     }}>
                       <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '4px' }}>
                         {idx + 1}: {response.authorNickname}
+                        {response.authorDepartment && (
+                          <span style={{ marginLeft: '8px', color: '#6b7280' }}>
+                            ({response.authorDepartment} {response.authorYear})
+                          </span>
+                        )}
                       </p>
 
                       <p style={{ whiteSpace: 'pre-wrap', color: '#1f2937', marginBottom: '8px' }}>
