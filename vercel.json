@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/close-thread/:id",
+      "destination": "/api/close-thread.js"
+    },
+    {
+      "source": "/api/delete-thread/:id",
+      "destination": "/api/delete-thread.js"
+    },
+    {
+      "source": "/api/delete-reply/:id",
+      "destination": "/api/delete-reply.js"
+    }
+  ]
+}
