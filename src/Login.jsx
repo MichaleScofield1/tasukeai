@@ -175,14 +175,7 @@ const Login = ({ onLoginSuccess }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="6323xxxx@ed.tus.ac.jp"
-                      style={{ 
-                        width: '100%', 
-                        paddingLeft: '44px', 
-                        padding: '10px', 
-                        border: '1px solid #d1d5db', 
-                        borderRadius: '8px', 
-                        fontSize: '14px' 
-                      }}
+                      style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                     />
                   </div>
                 </div>
