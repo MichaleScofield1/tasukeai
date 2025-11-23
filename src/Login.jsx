@@ -15,7 +15,7 @@ const Login = ({ onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   // ----------------------------------------------------------
-  // 送信処理
+  // 送信処理 ★修正箇所★
   // ----------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,14 +29,12 @@ const Login = ({ onLoginSuccess }) => {
         ? { studentId, password }
         : { studentId, password, nickname, department, year, email };
 
-      // ★ Render に確実に届く URL
       const response = await fetch(`${API_BASE}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
 
-      // JSON が返らない時エラー防止
       let data = {};
       try {
         data = await response.json();
@@ -50,17 +48,16 @@ const Login = ({ onLoginSuccess }) => {
         return;
       }
 
-      // ログイン成功
-      const userProfile = {
-        ...data.user,
-        skills: []
-      };
-
-      localStorage.setItem('authUser', JSON.stringify(userProfile));
-      localStorage.setItem('authToken', data.token);
-
-      alert(isLogin ? 'ログインしました' : '登録が完了しました。メールを確認してください！');
-      onLoginSuccess();
+      // ★★★ ここが重要な変更点 ★★★
+      if (isLogin) {
+        // ログイン成功時、トークンをApp.jsxに渡す
+        alert('ログインしました');
+        onLoginSuccess(data.token); // ← トークンを渡す
+      } else {
+        // 新規登録時
+        alert('登録が完了しました。メールを確認してください！');
+        setIsLogin(true); // ログイン画面に切り替え
+      }
 
     } catch (err) {
       console.error('エラー:', err);
@@ -71,7 +68,7 @@ const Login = ({ onLoginSuccess }) => {
   };
 
   // ----------------------------------------------------------
-  // UI（あなたの元コードそのまま）
+  // UI（元のコードそのまま）
   // ----------------------------------------------------------
 
   const modalOverlayStyle = {
@@ -113,7 +110,7 @@ const Login = ({ onLoginSuccess }) => {
 
             {/* 学籍番号 */}
             <div>
-              <label style={{ fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>学籍番号</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学籍番号</label>
               <div style={{ position: 'relative' }}>
                 <User style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
                 <input
@@ -121,15 +118,15 @@ const Login = ({ onLoginSuccess }) => {
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   required
-                  placeholder="@ed.tus.ac.jp"
-                  style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px' }}
+                  placeholder="学籍番号を入力"
+                  style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                 />
               </div>
             </div>
 
             {/* パスワード */}
             <div>
-              <label style={{ fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>パスワード</label>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>パスワード</label>
               <div style={{ position: 'relative' }}>
                 <Lock style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
                 <input
@@ -138,7 +135,7 @@ const Login = ({ onLoginSuccess }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px' }}
+                  style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                 />
               </div>
             </div>
@@ -147,7 +144,7 @@ const Login = ({ onLoginSuccess }) => {
               <>
                 {/* メールアドレス */}
                 <div>
-                  <label style={{ fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>
                     メールアドレス（@ed.tus.ac.jp）<span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <div style={{ position: 'relative' }}>
@@ -158,13 +155,53 @@ const Login = ({ onLoginSuccess }) => {
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="6323xxxx@ed.tus.ac.jp"
-                      style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px' }}
+                      style={{ width: '100%', paddingLeft: '44px', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
                     />
                   </div>
                 </div>
 
-                {/* 以下略：ニックネーム・学科・学年（あなたの元コードのまま） */}
-                {/* ここは省略しますが、上のコードと完全同じです */}
+                {/* ニックネーム */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>ニックネーム</label>
+                  <input
+                    type="text"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    required
+                    placeholder="ニックネームを入力"
+                    style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  />
+                </div>
+
+                {/* 学科 */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学科</label>
+                  <input
+                    type="text"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    required
+                    placeholder="例: 情報工学科"
+                    style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  />
+                </div>
+
+                {/* 学年 */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#374151' }}>学年</label>
+                  <select
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px' }}
+                  >
+                    <option value="">選択してください</option>
+                    <option value="1年">1年</option>
+                    <option value="2年">2年</option>
+                    <option value="3年">3年</option>
+                    <option value="4年">4年</option>
+                  </select>
+                </div>
               </>
             )}
 
@@ -175,7 +212,8 @@ const Login = ({ onLoginSuccess }) => {
                 width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 gap: '8px', padding: '12px',
                 backgroundColor: loading ? '#9ca3af' : '#2563eb',
-                color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer'
+                color: 'white', borderRadius: '8px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '16px', fontWeight: '500'
               }}
             >
               {loading ? '処理中...' : isLogin ? <><LogIn size={20} />ログイン</> : <><UserPlus size={20} />新規登録</>}

@@ -10,7 +10,8 @@ const categories = ['機械学習', 'ウェブ開発', 'データ分析', 'デ�
 // ========================================================================
 // 2. メインコンポーネント
 // ========================================================================
-const SkillSharePlatform = ({ onLogout }) => {
+// ★★★ ここが重要な変更点：propsを追加 ★★★
+const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     // --------------------------------------------------------------------
     // 2-1. State管理
     // --------------------------------------------------------------------
@@ -21,16 +22,15 @@ const SkillSharePlatform = ({ onLogout }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [reply, setReply] = useState('');
     const [profile, setProfile] = useState(null);
-    // const [showCloseConfirm, setShowCloseConfirm] = useState(false); // 未使用のためコメントアウト
     
-    // スレッド投稿用フォームState
+    // スレッド投稿用フォーム State
     const [newThread, setNewThread] = useState({
       title: '',
       content: '',
       tags: []
     });
 
-    // プロフィール編集用フォームState
+    // プロフィール編集用フォーム State
     const [profileForm, setProfileForm] = useState({
       nickname: '',
       skills: '',
@@ -42,35 +42,24 @@ const SkillSharePlatform = ({ onLogout }) => {
     // 2-2. 初期化と認証ロジック (useEffect)
     // --------------------------------------------------------------------
 
-    // 🔥 初期ロード時の認証チェックとデータ取得
+    // 🔥 App.jsxから渡されたauthUserを使用
     useEffect(() => {
-        const authUser = localStorage.getItem("authUser");
-        
-        if (!authUser) {
-          // ログイン情報がない場合はリダイレクト
-          alert("ログイン情報がありません。再ログインしてください。");
-          window.location.href = "http://localhost:3000/login.html";
-          return;
+        if (authUser) {
+          setProfile(authUser);
+          
+          // プロフィール編集用フォームの初期化
+          setProfileForm({
+              nickname: authUser.nickname || "",
+              skills: authUser.skills?.join(", ") || "",
+              department: authUser.department || "",
+              year: authUser.year || "",
+          });
         }
-        
-        const parsedUser = JSON.parse(authUser);
-        setProfile(parsedUser);
-
-        // プロフィール編集用フォームの初期化（localStorageのデータから）
-        setProfileForm({
-            nickname: parsedUser.nickname || "",
-            skills: parsedUser.skills?.join(", ") || "",
-            department: parsedUser.department || "",
-            year: parsedUser.year || "",
-        });
 
         // スレッド一覧のロード
         loadThreads();
-        
-        // サーバーから最新のプロフィール情報を取得（非同期）
-        fetchProfileFromServer();
 
-    }, []);
+    }, [authUser]);
 
 
     // --------------------------------------------------------------------
@@ -85,7 +74,6 @@ const SkillSharePlatform = ({ onLogout }) => {
         setThreads(data);
       } catch (error) {
         console.error("スレッド読み込みエラー:", error);
-        // alert("スレッドの読み込みに失敗しました"); // 読み込み失敗時はアラートを出さない方がUXが良い場合もあるが、元のコードを維持
       }
     };
     
@@ -100,91 +88,42 @@ const SkillSharePlatform = ({ onLogout }) => {
         }
     };
 
-    // サーバーから最新のプロフィールを取得
-    const fetchProfileFromServer = async () => {
-        const token = localStorage.getItem("authToken");
-        if (!token) return;
-      
-        try {
-          // JWTトークンをデコードしてuseridを取得
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const currentUserId = payload.userId;
-          if (!currentUserId) return;
-      
-          const res = await fetch(`${API_BASE}/api/profile`, {
-  headers: {
-    "Authorization": `Bearer ${token}`
-  }
-});
-
-          const data = await res.json();
-      
-          if (res.ok) {
-            setProfile(data);
-      
-            // プロフィール編集用フォームへ反映
-            setProfileForm({
-              nickname: data.nickname || "",
-              skills: data.skills?.join(", ") || "",
-              department: data.department || "",
-              year: data.year || "",
-            });
-          }
-        } catch (err) {
-          console.error("プロフィール取得エラー:", err);
-        }
-    };
-
-    // プロフィールをDBに保存/更新
+    // ★★★ プロフィール保存処理を修正 ★★★
     const handleProfileSubmit = async () => {
         try {
-          // プロフィール情報が存在しない場合、ローカルストレージから取得を試みる
-          let currentUser = profile;
-      
-          if (!currentUser) {
-            const saved = localStorage.getItem("authUser");
-            if (!saved) {
-              alert("ログイン情報がありません。再ログインしてください。");
-              return;
-            }
-            currentUser = JSON.parse(saved);
-            setProfile(currentUser);
-          }
-      
-          const currentUserId = currentUser.userid;
-          if (!currentUserId) {
-            alert("ユーザーIDが取得できません。再ログインしてください。");
+          if (!profile || !profile.userid) {
+            alert("ログイン情報がありません。再ログインしてください。");
             return;
           }
       
           // DB に送るデータを作成
           const updated = {
             nickname: profileForm.nickname,
-            // スキル文字列を配列に変換して送信
             skills: profileForm.skills.split(",").map(s => s.trim()).filter(s => s.length > 0),
             department: profileForm.department,
             year: profileForm.year
           };
       
-          // 更新リクエスト
-          const token = localStorage.getItem("authToken");
-
-const res = await fetch(`${API_BASE}/api/profile`, {
-  method: "PUT",
-  headers: { 
-    "Content-Type": "application/json",
-    "Authorization": `Bearer ${token}`
-  },
-  body: JSON.stringify(updated)
-});
-
-      
-          const data = await res.json();
-      
-          if (!res.ok) throw new Error(data.error || "更新失敗");
-      
-          setProfile(data);      // React state 更新
-          setShowProfile(false); // モーダル閉じる
+          // ★ App.jsxのonProfileUpdate関数を使用（キャッシュ対策済み）
+          const result = await onProfileUpdate(updated);
+          
+          if (result.success) {
+            // 最新データでプロフィールを更新
+            setProfile(result.data);
+            
+            // フォームも更新
+            setProfileForm({
+              nickname: result.data.nickname || "",
+              skills: result.data.skills?.join(", ") || "",
+              department: result.data.department || "",
+              year: result.data.year || "",
+            });
+            
+            setShowProfile(false);
+            alert("プロフィールを更新しました！");
+          } else {
+            alert("プロフィール更新エラー: " + result.error);
+          }
       
         } catch (err) {
           console.error("プロフィール更新エラー:", err);
@@ -206,23 +145,22 @@ const res = await fetch(`${API_BASE}/api/profile`, {
         }
     
         try {
-  const token = localStorage.getItem("authToken");
+          const token = localStorage.getItem("authToken");
 
-  const res = await fetch(`${API_BASE}/api/threads`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`   // ← ★ JWT を追加する
-    },
-    body: JSON.stringify({
-      title: newThread.title,
-      content: newThread.content,
-      authorId: profile.userid,            // ← ★ DB のカラムに合わせる
-      authorNickname: profile.nickname,
-      tags: newThread.tags.join(","),
-    })
-  });
-
+          const res = await fetch(`${API_BASE}/api/threads`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              title: newThread.title,
+              content: newThread.content,
+              authorId: profile.userid,
+              authorNickname: profile.nickname,
+              tags: newThread.tags.join(","),
+            })
+          });
     
           const data = await res.json();
     
@@ -261,7 +199,7 @@ const res = await fetch(`${API_BASE}/api/profile`, {
 
     // スレッドのクローズ（解決済みにする）
     const closeThreadDirectly = async () => {
-        if (!selectedThread || selectedThread.authorId !== profile.userid) return; // 投稿者のみクローズ可能
+        if (!selectedThread || selectedThread.authorId !== profile.userid) return;
     
         if (!window.confirm('このスレッドを解決済みにしますか？\n※この操作は取り消せません')) {
           return;
@@ -285,7 +223,6 @@ const res = await fetch(`${API_BASE}/api/profile`, {
           alert("スレッドのクローズに失敗しました");
         }
     };
-
 
     // 返信の追加
     const addReply = async () => {
