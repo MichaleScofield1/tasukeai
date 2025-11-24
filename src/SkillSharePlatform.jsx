@@ -2,118 +2,176 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, User, X, CheckCircle, Lock, Trash2 } from 'lucide-react';
 
 // ========================================================================
-// 1. 定数
+// APIのベースURL（バックエンドサーバーのアドレス）
 // ========================================================================
 const API_BASE = "https://tasukeai.vercel.app";
 
 // ========================================================================
-// 2. メインコンポーネント
+// メインコンポーネント - 掲示板アプリの全体を管理
 // ========================================================================
-// ★★★ ここが重要な変更点：propsを追加 ★★★
+/**
+ * このコンポーネントは以下の3つの重要な情報を親(App.jsx)から受け取ります:
+ * @param {Function} onLogout - ログアウトボタンが押されたときに実行する関数
+ * @param {Object} authUser - 現在ログインしているユーザーの情報（ID、ニックネームなど）
+ * @param {Function} onProfileUpdate - プロフィール更新時に親に通知する関数
+ */
 const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
-    // --------------------------------------------------------------------
-    // 2-1. State管理
-    // --------------------------------------------------------------------
+    
+    // ====================================================================
+    // State（状態）の定義 - アプリの「記憶」を管理する変数たち
+    // ====================================================================
+    
+    // スレッド（投稿）の一覧を保存する
+    // 例: [{id: 1, title: "React質問", content: "..."},...]
     const [threads, setThreads] = useState([]);
+    
+    // 現在開いているスレッドの詳細情報（モーダルで表示中のスレッド）
+    // 何も開いていないときは null
     const [selectedThread, setSelectedThread] = useState(null);
+    
+    // 新規スレッド作成モーダルの表示/非表示を管理
+    // true = モーダル表示、false = 非表示
     const [showNewThread, setShowNewThread] = useState(false);
+    
+    // プロフィール設定モーダルの表示/非表示を管理
     const [showProfile, setShowProfile] = useState(false);
+    
+    // 検索ボックスに入力された文字列を保存
     const [searchTerm, setSearchTerm] = useState('');
+    
+    // スレッド詳細画面で入力中の返信内容
     const [reply, setReply] = useState('');
+    
+    // ログイン中のユーザーのプロフィール情報
+    // 例: {userid: "abc123", nickname: "なおき", department: "情報計算科学科"}
     const [profile, setProfile] = useState(null);
     
-    // スレッド投稿用フォーム State
+    // 新規スレッド作成フォームの入力内容を保存
     const [newThread, setNewThread] = useState({
-      title: '',
-      content: '',
-      tags: [],
-      customTag: ''  // ← 追加：カスタムタグ入力用
+      title: '',        // スレッドのタイトル
+      content: '',      // スレッドの本文
+      tags: [],         // 選択されたタグの配列 例: ["数学", "プログラミング"]
+      customTag: ''     // タグ追加用の入力欄の内容
     });
 
-    // プロフィール編集用フォーム State
+    // プロフィール編集フォームの入力内容を保存
     const [profileForm, setProfileForm] = useState({
-      nickname: '',
-      skills: '',
-      department: '',
-      year: ''
+      nickname: '',    // ニックネーム
+      skills: '',      // スキルタグ（カンマ区切りの文字列）
+      department: '',  // 学科
+      year: ''         // 学年
     });
 
-    // --------------------------------------------------------------------
-    // 2-2. 初期化と認証ロジック (useEffect)
-    // --------------------------------------------------------------------
-
-    // 🔥 App.jsxから渡されたauthUserを使用
+    // ====================================================================
+    // useEffect - 画面が最初に表示されたときに実行される処理
+    // ====================================================================
+    /**
+     * このuseEffectは以下の2つのタイミングで実行されます:
+     * 1. コンポーネントが最初に画面に表示されたとき
+     * 2. authUser（ログインユーザー情報）が変更されたとき
+     */
     useEffect(() => {
+        // authUserが存在する（ログイン済み）場合の処理
         if (authUser) {
+          // 親から受け取ったユーザー情報をローカルのprofileに保存
           setProfile(authUser);
           
-          // プロフィール編集用フォームの初期化
+          // プロフィール編集フォームの各項目を初期化
           setProfileForm({
-              nickname: authUser.nickname || "",
+              nickname: authUser.nickname || "",  // ニックネームがない場合は空文字
+              // skillsが配列の場合はカンマ区切りの文字列に変換
+              // 例: ["React", "Node.js"] → "React, Node.js"
               skills: authUser.skills?.join(", ") || "",
               department: authUser.department || "",
               year: authUser.year || "",
           });
         }
 
-        // スレッド一覧のロード
+        // サーバーからスレッド一覧を取得して画面に表示
         loadThreads();
 
-    }, [authUser]);
+    }, [authUser]); // authUserが変わったら再実行
 
 
-    // --------------------------------------------------------------------
-    // 2-3. API通信ロジック (関数)
-    // --------------------------------------------------------------------
+    // ====================================================================
+    // サーバーとの通信関数 - データの取得・送信を担当
+    // ====================================================================
 
-    // スレッド一覧の読み込み
+    /**
+     * 【関数1】スレッド一覧をサーバーから取得
+     * - サーバーに「全スレッドちょうだい」とリクエスト
+     * - 受け取ったデータをthreads Stateに保存
+     */
     const loadThreads = async () => {
       try {
+        // GETリクエスト: サーバーの /api/threads エンドポイントにアクセス
         const res = await fetch(`${API_BASE}/api/threads`);
+        
+        // サーバーから返ってきたJSON形式のデータを変換
         const data = await res.json();
-        console.log('📋 取得したスレッドデータ:', data); // ← デバッグ用ログ
-        console.log('📋 最初のスレッド:', data[0]); // ← 詳細確認
+        
+        // デバッグ用: ブラウザのコンソールにデータを表示
+        console.log('📋 取得したスレッドデータ:', data);
+        console.log('📋 最初のスレッド:', data[0]);
+        
+        // 取得したデータをStateに保存（画面が自動で更新される）
         setThreads(data);
       } catch (error) {
         console.error("スレッド読み込みエラー:", error);
       }
     };
     
-    // 特定スレッドの返信を読み込む
+    /**
+     * 【関数2】特定のスレッドの返信一覧を取得
+     * @param {string} threadId - 返信を取得したいスレッドのID
+     * @returns {Array} 返信の配列
+     */
     const loadReplies = async (threadId) => {
         try {
+          // GETリクエスト: ?threadId=xxx というクエリパラメータ付きでリクエスト
           const res = await fetch(`${API_BASE}/api/replies?threadId=${threadId}`);
+          
+          // 返信データの配列を返す
           return await res.json();
         } catch (err) {
           console.error("返信読み込みエラー:", err);
-          return [];
+          return []; // エラー時は空の配列を返す
         }
     };
 
-    // ★★★ プロフィール保存処理を修正 ★★★
+    /**
+     * 【関数3】プロフィールを更新してサーバーに保存
+     * - フォームに入力された内容をサーバーに送信
+     * - 成功したら画面のプロフィール表示も更新
+     */
     const handleProfileSubmit = async () => {
         try {
+          // ログイン情報がない場合はエラー
           if (!profile || !profile.userid) {
             alert("ログイン情報がありません。再ログインしてください。");
             return;
           }
       
-          // DB に送るデータを作成
+          // サーバーに送信するデータを準備
           const updated = {
             nickname: profileForm.nickname,
+            // skillsをカンマで分割して配列に変換
+            // 例: "React, Node.js" → ["React", "Node.js"]
             skills: profileForm.skills.split(",").map(s => s.trim()).filter(s => s.length > 0),
             department: profileForm.department,
             year: profileForm.year
           };
       
-          // ★ App.jsxのonProfileUpdate関数を使用（キャッシュ対策済み）
+          // 親コンポーネント(App.jsx)の更新関数を呼び出し
+          // この関数がサーバーへのPUTリクエストを実行
           const result = await onProfileUpdate(updated);
           
+          // サーバーからの応答が成功の場合
           if (result.success) {
-            // 最新データでプロフィールを更新
+            // 最新のユーザー情報でStateを更新
             setProfile(result.data);
             
-            // フォームも更新
+            // フォームの内容も最新データで更新
             setProfileForm({
               nickname: result.data.nickname || "",
               skills: result.data.skills?.join(", ") || "",
@@ -121,9 +179,11 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
               year: result.data.year || "",
             });
             
+            // モーダルを閉じる
             setShowProfile(false);
             alert("プロフィールを更新しました！");
           } else {
+            // エラーメッセージを表示
             alert("プロフィール更新エラー: " + result.error);
           }
       
@@ -134,51 +194,69 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     };
 
 
-    // 新規スレッドの作成
+    /**
+     * 【関数4】新しいスレッドを作成してサーバーに送信
+     * - タイトルと内容が入力されているかチェック
+     * - サーバーにPOSTリクエストを送信
+     * - 成功したらスレッド一覧を再読み込み
+     */
     const createThread = async () => {
+        // 入力チェック: タイトルまたは内容が空の場合はエラー
         if (!newThread.title.trim() || !newThread.content.trim()) {
           alert('タイトルと内容を入力してください');
           return;
         }
     
+        // ニックネームが設定されていない場合はエラー
         if (!profile || !profile.nickname) {
           alert('プロフィールでニックネームを設定してください');
           return;
         }
     
         try {
+          // ローカルストレージから認証トークンを取得
+          // このトークンでサーバーが「この人は誰か」を識別
           const token = localStorage.getItem("authToken");
 
-          // ★ デバッグ用ログ
+          // デバッグ用ログ
           console.log('スレッド作成データ:', {
             authorId: profile.userid,
             authorNickname: profile.nickname,
             profile: profile
           });
 
+          // POSTリクエスト: 新規スレッドデータをサーバーに送信
           const res = await fetch(`${API_BASE}/api/threads`, {
-            method: "POST",
+            method: "POST",  // POSTメソッド = データを送信する
             headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
+              "Content-Type": "application/json",  // JSON形式で送信
+              "Authorization": `Bearer ${token}`   // 認証トークンをヘッダーに含める
             },
+            // 送信するデータをJSON文字列に変換
             body: JSON.stringify({
               title: newThread.title,
               content: newThread.content,
-              authorId: profile.userid,
-              authorNickname: profile.nickname, // ★ profileから直接取得
-              tags: newThread.tags.join(","),
+              authorId: profile.userid,           // 投稿者のID
+              authorNickname: profile.nickname,   // 投稿者のニックネーム
+              tags: newThread.tags.join(","),     // タグ配列をカンマ区切り文字列に変換
             })
           });
     
+          // サーバーからの応答をJSON形式で取得
           const data = await res.json();
     
+          // エラーレスポンスの場合は例外を投げる
           if (!res.ok) throw new Error(data.message || "スレッド作成に失敗");
     
           console.log('スレッド作成成功:', data);
     
+          // フォームをリセット（空にする）
           setNewThread({ title: '', content: '', tags: [] });
+          
+          // モーダルを閉じる
           setShowNewThread(false);
+          
+          // スレッド一覧を再読み込みして最新状態に
           loadThreads();
     
         } catch (error) {
@@ -188,17 +266,27 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     };
 
 
-    // スレッドの削除
+    /**
+     * 【関数5】スレッドを削除する
+     * @param {string} threadId - 削除するスレッドのID
+     * @param {string} threadTitle - 削除するスレッドのタイトル（確認メッセージ用）
+     */
     const deleteThread = async (threadId, threadTitle) => {
+        // 確認ダイアログを表示（キャンセルされたら処理を中断）
         if (!window.confirm(`「${threadTitle}」を削除しますか？\n※この操作は取り消せません`)) return;
     
         try {
+            // DELETEリクエスト: サーバーに削除を依頼
             await fetch(`${API_BASE}/api/delete-thread/${threadId}`, {
             method: "DELETE"
           });
     
           alert("スレッドを削除しました");
+          
+          // モーダルを閉じる
           setSelectedThread(null);
+          
+          // スレッド一覧を再読み込み
           loadThreads();
     
         } catch (error) {
@@ -208,25 +296,33 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     };
 
 
-    // スレッドのクローズ（解決済みにする）
+    /**
+     * 【関数6】スレッドを「解決済み」にする（クローズ）
+     * - 投稿者本人のみが実行可能
+     * - クローズ後は返信ができなくなる
+     */
     const closeThreadDirectly = async () => {
+        // 権限チェック: 自分が投稿したスレッド以外はクローズできない
         if (!selectedThread || selectedThread.authorId !== profile.userid) return;
     
+        // 確認ダイアログ
         if (!window.confirm('このスレッドを解決済みにしますか？\n※この操作は取り消せません')) {
           return;
         }
     
         try {
+          // POSTリクエスト: サーバーにクローズを依頼
           await fetch(`${API_BASE}/api/close-thread/${selectedThread.id}`, {
             method: "POST"
           });
     
-          // UIを即時更新
+          // 画面の表示を即座に更新（サーバーからの再取得を待たない）
           setSelectedThread({
-            ...selectedThread,
-            status: "closed"
+            ...selectedThread,  // 既存のデータをコピー
+            status: "closed"    // statusだけ変更
           });
     
+          // スレッド一覧も再読み込み
           loadThreads();
     
         } catch (error) {
@@ -236,15 +332,23 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     };
 
 
-    // 返信の追加
+    /**
+     * 【関数7】スレッドに返信を投稿する
+     * - 現在開いているスレッドに対して返信を追加
+     * - 投稿後は返信一覧を再読み込み
+     */
     const addReply = async () => {
+        // 空の返信は送信しない
         if (!reply.trim()) return;
+        
+        // プロフィールが未設定の場合はエラー
         if (!profile) {
           alert('プロフィールを設定してください');
           return;
         }
     
         try {
+          // デバッグ用ログ
           console.log('📤 返信データ:', {
             threadId: selectedThread.id,
             authorId: profile.userid,
@@ -252,19 +356,22 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
             content: reply
           });
 
+          // POSTリクエスト: 返信データをサーバーに送信
           const res = await fetch(`${API_BASE}/api/replies`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              threadId: selectedThread.id,  // ← これが重要！
-              authorId: profile.userid,
-              authorNickname: profile.nickname,
-              content: reply
+              threadId: selectedThread.id,        // どのスレッドへの返信か
+              authorId: profile.userid,           // 返信者のID
+              authorNickname: profile.nickname,   // 返信者のニックネーム
+              content: reply                      // 返信の内容
             })
           });
     
+          // サーバーからの応答を取得
           const data = await res.json();
           
+          // エラーの場合
           if (!res.ok) {
             console.error('❌ 返信エラー:', data);
             throw new Error(data.message || data.error);
@@ -272,14 +379,16 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
 
           console.log('✅ 返信成功:', data);
     
+          // 入力欄をクリア
           setReply('');
     
-          // 最新の返信を再取得してスレッド詳細を更新
+          // このスレッドの最新の返信一覧を取得
           const updatedReplies = await loadReplies(selectedThread.id);
     
+          // 画面に表示中のスレッド情報を更新
           setSelectedThread({
             ...selectedThread,
-            responses: updatedReplies
+            responses: updatedReplies  // 返信一覧を最新に
           });
     
         } catch (error) {
@@ -289,25 +398,32 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     };
 
 
-    // 返信の削除
+    /**
+     * 【関数8】返信を削除する
+     * @param {string} replyId - 削除する返信のID
+     */
     const deleteReply = async (replyId) => {
+        // 確認ダイアログ
         if (!window.confirm("この返信を削除しますか？")) return;
       
         try {
+          // DELETEリクエスト: サーバーに削除を依頼
           const res = await fetch(`${API_BASE}/api/delete-reply/${replyId}`, {
             method: "DELETE",
           });
       
           const data = await res.json();
       
+          // エラーチェック
           if (!res.ok) {
             alert(data.error || "削除に失敗しました");
             return;
           }
       
-          // 最新の返信を再取得
+          // 最新の返信一覧を取得
           const updatedReplies = await loadReplies(selectedThread.id);
       
+          // 画面を更新
           setSelectedThread({
             ...selectedThread,
             responses: updatedReplies
@@ -320,60 +436,79 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     };
 
 
-    // --------------------------------------------------------------------
-    // 2-4. ユーティリティ/ハンドラー
-    // --------------------------------------------------------------------
+    // ====================================================================
+    // ユーティリティ関数 - 補助的な処理
+    // ====================================================================
 
-    
-    // スレッド検索のフィルタリング
+    /**
+     * スレッドの検索フィルタリング
+     * - searchTermに入力された文字列でスレッドを絞り込む
+     * - タイトルまたはタグが検索文字列を含むスレッドのみ表示
+     */
     const filteredThreads = threads.filter(thread =>
         (thread.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (thread.tags || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // モーダル用スタイル定義
+    // モーダル（ポップアップ）のスタイル定義
+    // 画面全体を覆う半透明の背景
     const modalOverlayStyle = {
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9999
+      position: 'fixed',           // 画面に固定
+      top: 0, left: 0,             // 画面の左上から
+      right: 0, bottom: 0,         // 画面全体を覆う
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',  // 半透明の黒
+      display: 'flex',             // フレックスボックスで中央配置
+      alignItems: 'center',        // 縦方向中央
+      justifyContent: 'center',    // 横方向中央
+      zIndex: 9999                 // 最前面に表示
     };
 
+    // モーダルの中身（白い箱）のスタイル
     const modalContentStyle = {
-      backgroundColor: 'white', borderRadius: '12px',
+      backgroundColor: 'white',
+      borderRadius: '12px',
       padding: '24px',
-      maxWidth: '700px', width: '90%', maxHeight: '85vh',
-      overflowY: 'auto',
+      maxWidth: '700px',           // 最大幅
+      width: '90%',                // 画面幅の90%
+      maxHeight: '85vh',           // 画面の高さの85%
+      overflowY: 'auto',           // 内容が多い場合はスクロール
       boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
     };
 
 
-    // --------------------------------------------------------------------
-    // 2-5. レンダリング (UI)
-    // --------------------------------------------------------------------
+    // ====================================================================
+    // UI（見た目）のレンダリング - ここから画面の構造
+    // ====================================================================
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
           <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}>
             
-            {/* ヘッダーとコントロールパネル */}
+            {/* ========================================
+                ヘッダー部分 - タイトル、検索、ボタンなど
+                ======================================== */}
             <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '24px', marginBottom: '24px' }}>
               
-              {/* タイトルとユーザーアクション */}
+              {/* タイトルとユーザーアクション（プロフィール、ログアウト） */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                {/* サイトタイトル */}
                 <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#2563eb', borderBottom: '4px solid #2563eb', paddingBottom: '8px' }}>
                   助け合いの極み
                 </h1>
 
+                {/* 右側のボタン群 */}
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {/* プロフィール設定ボタン */}
                   <button 
                     onClick={() => setShowProfile(true)}
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                   >
                     <User size={20} />
+                    {/* プロフィールがあればニックネーム表示、なければ「プロフィール設定」 */}
                     {profile ? profile.nickname : 'プロフィール設定'}
                   </button>
 
+                  {/* ログアウトボタン */}
                   <button 
                     onClick={onLogout}
                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
@@ -383,10 +518,13 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                 </div>
               </div>
 
-              {/* 検索と新規スレッドボタン */}
+              {/* 検索ボックスと新規スレッドボタン */}
               <div style={{ display: 'flex', gap: '16px' }}>
+                {/* 検索ボックス */}
                 <div style={{ flex: 1, position: 'relative' }}>
+                  {/* 虫眼鏡アイコン */}
                   <Search style={{ position: 'absolute', left: '12px', top: '12px', color: '#9ca3af' }} size={20} />
+                  {/* 検索入力欄 */}
                   <input
                     type="text"
                     placeholder="スレッドを検索..."
@@ -396,6 +534,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                   />
                 </div>
 
+                {/* 新規スレッド作成ボタン */}
                 <button 
                   onClick={() => setShowNewThread(true)}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
@@ -406,8 +545,11 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
               </div>
             </div>
 
-            {/* スレッド一覧 */}
+            {/* ========================================
+                スレッド一覧表示エリア
+                ======================================== */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+              {/* filteredThreadsの各スレッドをカード形式で表示 */}
               {filteredThreads.map(thread => (
                 <div 
                   key={thread.id}
@@ -420,9 +562,12 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                     transition: 'transform 0.1s',
                     ':hover': { transform: 'translateY(-2px)' }
                   }}
+                  // クリックでスレッド詳細を開く
                   onClick={async () => {
+                    // このスレッドの返信を取得
                     const replies = await loadReplies(thread.id);
 
+                    // スレッドデータに返信を追加
                     const newThreadData = {
                       ...thread,
                       responses: replies,
