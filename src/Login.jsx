@@ -289,28 +289,7 @@ const Login = ({ onLoginSuccess }) => {
               onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
               onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
             >
-              このタブを閉じる
-            </button>
-
-            {/* ログイン画面に戻るボタン */}
-            <button
-              onClick={() => {
-                setShowEmailConfirmation(false);
-                setIsLogin(true);
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer'
-              }}
-            >
-              ログイン画面に戻る
+              このタブを閉じてください
             </button>
           </div>
         </div>
