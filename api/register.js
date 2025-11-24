@@ -24,6 +24,11 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "必須項目が不足しています" });
   }
 
+  // パスワードの長さチェック
+  if (password.length < 6) {
+    return res.status(400).json({ error: "パスワードは6文字以上で入力してください" });
+  }
+
   // メールアドレスのドメインチェック（@ed.tus.ac.jp）
   if (!email.endsWith('@ed.tus.ac.jp')) {
     return res.status(400).json({ error: "@ed.tus.ac.jp のメールアドレスを使用してください" });

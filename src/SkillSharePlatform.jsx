@@ -5,7 +5,6 @@ import { Search, Plus, User, X, CheckCircle, Lock, Trash2 } from 'lucide-react';
 // 1. 定数
 // ========================================================================
 const API_BASE = "https://tasukeai.vercel.app";
-const categories = ['機械学習', 'ウェブ開発', 'データ分析', 'デザイン', 'その他'];
 
 // ========================================================================
 // 2. メインコンポーネント
@@ -524,67 +523,28 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
 
                     <div>
                       <label style={{ display: "block", fontSize: "14px", fontWeight: "500", marginBottom: "6px" }}>
-                        カテゴリータグ
+                        タグを追加（#で始めてください）
                       </label>
                       
-                      {/* プリセットタグ */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
-                        {categories.map((cat) => (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => {
-                              const tags = newThread.tags.includes(cat)
-                                ? newThread.tags.filter((t) => t !== cat)
-                                : [...newThread.tags, cat];
-                              setNewThread({ ...newThread, tags });
-                            }}
-                            style={{
-                              padding: "4px 12px",
-                              borderRadius: "6px",
-                              border: "none",
-                              cursor: "pointer",
-                              backgroundColor: newThread.tags.includes(cat) ? "#2563eb" : "#e5e7eb",
-                              color: newThread.tags.includes(cat) ? "white" : "#374151",
-                            }}
-                          >
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
-
                       {/* カスタムタグ入力 */}
-                      <div style={{ marginTop: "12px" }}>
-                        <label style={{ display: "block", fontSize: "12px", color: "#6b7280", marginBottom: "6px" }}>
-                          カスタムタグを追加（#で始めてください）
-                        </label>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <input
-                            type="text"
-                            value={newThread.customTag}
-                            onChange={(e) => {
-                              let value = e.target.value;
-                              // 自動的に#を追加
-                              if (value && !value.startsWith('#')) {
-                                value = '#' + value;
-                              }
-                              setNewThread({ ...newThread, customTag: value });
-                            }}
-                            placeholder="#例: 機械学習"
-                            style={{
-                              flex: 1,
-                              padding: "8px 12px",
-                              border: "1px solid #d1d5db",
-                              borderRadius: "6px",
-                              fontSize: "14px"
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
+                      <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                        <input
+                          type="text"
+                          value={newThread.customTag}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            // 自動的に#を追加
+                            if (value && !value.startsWith('#')) {
+                              value = '#' + value;
+                            }
+                            setNewThread({ ...newThread, customTag: value });
+                          }}
+                          onKeyPress={(e) => {
+                            // Enterキーで追加
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
                               const tag = newThread.customTag.trim();
                               if (tag && tag.length > 1) {
-                                // #を除いたタグ名を取得
                                 const tagName = tag.startsWith('#') ? tag.slice(1) : tag;
                                 if (tagName && !newThread.tags.includes(tagName)) {
                                   setNewThread({ 
@@ -594,27 +554,52 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                                   });
                                 }
                               }
-                            }}
-                            style={{
-                              padding: "8px 16px",
-                              backgroundColor: "#10b981",
-                              color: "white",
-                              border: "none",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              fontWeight: "500"
-                            }}
-                          >
-                            追加
-                          </button>
-                        </div>
+                            }
+                          }}
+                          placeholder="#例: 機械学習"
+                          style={{
+                            flex: 1,
+                            padding: "10px 12px",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "6px",
+                            fontSize: "14px"
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const tag = newThread.customTag.trim();
+                            if (tag && tag.length > 1) {
+                              // #を除いたタグ名を取得
+                              const tagName = tag.startsWith('#') ? tag.slice(1) : tag;
+                              if (tagName && !newThread.tags.includes(tagName)) {
+                                setNewThread({ 
+                                  ...newThread, 
+                                  tags: [...newThread.tags, tagName],
+                                  customTag: ''
+                                });
+                              }
+                            }
+                          }}
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#10b981",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "14px",
+                            fontWeight: "500"
+                          }}
+                        >
+                          追加
+                        </button>
                       </div>
 
                       {/* 選択されたタグ一覧 */}
                       {newThread.tags.length > 0 && (
-                        <div style={{ marginTop: "12px" }}>
-                          <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "6px" }}>選択中のタグ:</p>
+                        <div>
+                          <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "8px" }}>選択中のタグ:</p>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                             {newThread.tags.map((tag, idx) => (
                               <span
@@ -623,11 +608,11 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                                   display: "inline-flex",
                                   alignItems: "center",
                                   gap: "4px",
-                                  padding: "4px 8px",
+                                  padding: "6px 10px",
                                   backgroundColor: "#dbeafe",
                                   color: "#1e40af",
                                   borderRadius: "6px",
-                                  fontSize: "12px"
+                                  fontSize: "13px"
                                 }}
                               >
                                 #{tag}
@@ -645,8 +630,9 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                                     color: "#1e40af",
                                     cursor: "pointer",
                                     padding: "0",
-                                    fontSize: "16px",
-                                    lineHeight: "1"
+                                    fontSize: "18px",
+                                    lineHeight: "1",
+                                    fontWeight: "bold"
                                   }}
                                 >
                                   ×
