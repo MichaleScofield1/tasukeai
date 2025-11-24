@@ -30,14 +30,24 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // 既存ユーザーチェック
+    // 既存ユーザーチェック（学籍番号、メール、ニックネーム）
     const existingUser = await query(
-      `SELECT * FROM users WHERE studentid = $1 OR email = $2`,
-      [studentId, email]
+      `SELECT studentid, email, nickname FROM users 
+       WHERE studentid = $1 OR email = $2 OR nickname = $3`,
+      [studentId, email, nickname]
     );
 
     if (existingUser.rows.length > 0) {
-      return res.status(409).json({ error: "この学籍番号またはメールアドレスは既に登録されています" });
+      const existing = existingUser.rows[0];
+      if (existing.studentid === studentId) {
+        return res.status(409).json({ error: "この学籍番号は既に登録されています" });
+      }
+      if (existing.email === email) {
+        return res.status(409).json({ error: "このメールアドレスは既に登録されています" });
+      }
+      if (existing.nickname === nickname) {
+        return res.status(409).json({ error: "このニックネームは既に使用されています。別のニックネームを選択してください。" });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
