@@ -301,16 +301,21 @@ const Login = ({ onLoginSuccess }) => {
     position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(37, 99, 235, 0.1)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    minHeight: '100vh'
+    minHeight: '100vh',
+    overflowY: 'auto', // スクロール可能に
+    padding: '20px 0' // 上下に余白
   };
 
   const formContainerStyle = {
     backgroundColor: 'white',
     borderRadius: '16px',
-    padding: '40px',
+    padding: '32px', // パディングを少し縮小
     maxWidth: '450px',
     width: '90%',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    margin: 'auto', // 中央配置
+    maxHeight: '95vh', // 最大高さを設定
+    overflowY: 'auto' // コンテナ内もスクロール可能に
   };
 
   // ====================================================================
@@ -319,8 +324,9 @@ const Login = ({ onLoginSuccess }) => {
   return (
     <div style={modalOverlayStyle}>
       <div style={formContainerStyle}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563eb', marginBottom: '8px' }}>
+        {/* タイトル */}
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#2563eb', marginBottom: '8px' }}>
             助け合いの極み
           </h1>
           <p style={{ color: '#6b7280', fontSize: '14px' }}>
@@ -450,7 +456,7 @@ const Login = ({ onLoginSuccess }) => {
           </form>
         ) : (
           <form onSubmit={handleRegister}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               
               <div>
                 <label style={{ 
