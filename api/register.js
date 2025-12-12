@@ -3,7 +3,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { query } = require("./_utils/db"); // ← pool から query に変更
+const { query } = require("./_utils/db");
 const { sendVerifyEmail } = require("./_utils/mailer");
 
 module.exports = async (req, res) => {
@@ -15,13 +15,18 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { studentId, email, password, nickname, department, year } = req.body;
+  const { studentId, email, password, confirmPassword, nickname, department, year } = req.body;
 
   console.log("📝 登録リクエスト:", { studentId, email, nickname, department, year });
 
   // 必須チェック
-  if (!studentId || !email || !password) {
+  if (!studentId || !email || !password || !confirmPassword) {
     return res.status(400).json({ error: "必須項目が不足しています" });
+  }
+
+  // パスワード確認チェック
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: "パスワードが一致しません" });
   }
 
   // パスワードの長さチェック
@@ -66,7 +71,7 @@ module.exports = async (req, res) => {
 
     console.log("💾 データベースに保存:", { userId, studentId, email });
 
-    // ★ query関数を使用（pool.connect()ではなく）
+    // データベースに保存
     const result = await query(
       `INSERT INTO users (userid, studentid, email, password, nickname, department, year, verificationtoken, isverified)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
