@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { User, Lock, LogIn, Mail, CheckCircle, UserPlus } from 'lucide-react';
 
-const API_BASE = "";
+const API_BASE = "https://tasukeai.vercel.app";
 
 const Login = ({ onLoginSuccess }) => {
   // ====================================================================
   // State管理
   // ====================================================================
-  const [isLogin, setIsLogin] = useState(true); // ログイン/新規登録の切り替え
-  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false); // メール確認画面の表示
-  const [registeredEmail, setRegisteredEmail] = useState(''); // 登録したメールアドレス
+  const [isLogin, setIsLogin] = useState(true);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
@@ -19,15 +19,20 @@ const Login = ({ onLoginSuccess }) => {
     password: ''
   });
 
-  // 新規登録用フォーム
+  // 新規登録用フォーム（confirmPasswordを追加）
   const [registerForm, setRegisterForm] = useState({
     studentId: '',
     email: '',
     password: '',
+    confirmPassword: '', // ← 追加
     nickname: '',
     department: '',
     year: ''
   });
+
+  // パスワード一致チェック
+  const passwordsMatch = registerForm.password === registerForm.confirmPassword;
+  const showPasswordError = registerForm.confirmPassword.length > 0 && !passwordsMatch;
 
   // ====================================================================
   // ログイン処理
@@ -66,7 +71,6 @@ const Login = ({ onLoginSuccess }) => {
         return;
       }
 
-      // ログイン成功
       onLoginSuccess(data.token);
 
     } catch (err) {
@@ -87,8 +91,15 @@ const Login = ({ onLoginSuccess }) => {
 
     // バリデーション
     if (!registerForm.studentId || !registerForm.email || !registerForm.password || 
-        !registerForm.nickname || !registerForm.department || !registerForm.year) {
+        !registerForm.confirmPassword || !registerForm.nickname || !registerForm.department || !registerForm.year) {
       setError('すべての項目を入力してください');
+      setLoading(false);
+      return;
+    }
+
+    // パスワード一致チェック
+    if (registerForm.password !== registerForm.confirmPassword) {
+      setError('パスワードが一致しません');
       setLoading(false);
       return;
     }
@@ -99,7 +110,6 @@ const Login = ({ onLoginSuccess }) => {
       return;
     }
 
-    // メールアドレスのバリデーション（大学のメール形式）
     if (!registerForm.email.endsWith('@ed.tus.ac.jp')) {
       setError('大学のメールアドレス（@ed.tus.ac.jp）を使用してください');
       setLoading(false);
@@ -114,6 +124,7 @@ const Login = ({ onLoginSuccess }) => {
           studentId: registerForm.studentId,
           email: registerForm.email,
           password: registerForm.password,
+          confirmPassword: registerForm.confirmPassword, // ← 追加
           nickname: registerForm.nickname,
           department: registerForm.department,
           year: registerForm.year
@@ -133,16 +144,15 @@ const Login = ({ onLoginSuccess }) => {
         return;
       }
 
-      // 登録成功 - メール確認画面を表示
       setRegisteredEmail(registerForm.email);
       setShowEmailConfirmation(true);
       setError('');
       
-      // フォームをリセット
       setRegisterForm({
         studentId: '',
         email: '',
         password: '',
+        confirmPassword: '', // ← リセット時も追加
         nickname: '',
         department: '',
         year: ''
@@ -178,7 +188,6 @@ const Login = ({ onLoginSuccess }) => {
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
           textAlign: 'center'
         }}>
-          {/* 成功アイコン */}
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -197,7 +206,6 @@ const Login = ({ onLoginSuccess }) => {
             </div>
           </div>
 
-          {/* タイトル */}
           <h2 style={{
             fontSize: '28px',
             fontWeight: 'bold',
@@ -207,7 +215,6 @@ const Login = ({ onLoginSuccess }) => {
             登録ありがとうございます！
           </h2>
 
-          {/* メールアイコンと説明 */}
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -226,7 +233,6 @@ const Login = ({ onLoginSuccess }) => {
             確認メールを送信しました。
           </p>
 
-          {/* 手順説明 */}
           <div style={{
             backgroundColor: '#f3f4f6',
             borderRadius: '8px',
@@ -256,7 +262,6 @@ const Login = ({ onLoginSuccess }) => {
             </ol>
           </div>
 
-          {/* 注意事項 */}
           <p style={{
             fontSize: '13px',
             color: '#6b7280',
@@ -265,33 +270,25 @@ const Login = ({ onLoginSuccess }) => {
             ※ メールが届かない場合は、迷惑メールフォルダをご確認ください
           </p>
 
-          {/* ボタン群 */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-          }}>
-            {/* タブを閉じるボタン */}
-            <button
-              onClick={() => window.close()}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
-            >
-              このタブを閉じてください
-            </button>
-          </div>
+          <button
+            onClick={() => window.close()}
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: '#2563eb',
+              color: 'white',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#1d4ed8'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#2563eb'}
+          >
+            このタブを閉じてください
+          </button>
         </div>
       </div>
     );
@@ -322,7 +319,6 @@ const Login = ({ onLoginSuccess }) => {
   return (
     <div style={modalOverlayStyle}>
       <div style={formContainerStyle}>
-        {/* タイトル */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold', color: '#2563eb', marginBottom: '8px' }}>
             助け合いの極み
@@ -332,7 +328,6 @@ const Login = ({ onLoginSuccess }) => {
           </p>
         </div>
 
-        {/* エラーメッセージ */}
         {error && (
           <div style={{ 
             padding: '12px', 
@@ -345,12 +340,10 @@ const Login = ({ onLoginSuccess }) => {
           </div>
         )}
 
-        {/* ログインフォーム */}
         {isLogin ? (
           <form onSubmit={handleLogin}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               
-              {/* 学籍番号 */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -391,7 +384,6 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
               </div>
 
-              {/* パスワード */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -433,7 +425,6 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
               </div>
 
-              {/* ログインボタン */}
               <button
                 type="submit"
                 disabled={loading}
@@ -458,11 +449,9 @@ const Login = ({ onLoginSuccess }) => {
             </div>
           </form>
         ) : (
-          // 新規登録フォーム
           <form onSubmit={handleRegister}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               
-              {/* 学籍番号 */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -503,7 +492,6 @@ const Login = ({ onLoginSuccess }) => {
                 </div>
               </div>
 
-              {/* メールアドレス */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -591,7 +579,59 @@ const Login = ({ onLoginSuccess }) => {
                 )}
               </div>
 
-              {/* ニックネーム */}
+              {/* パスワード確認（新規追加） */}
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  fontSize: '14px', 
+                  fontWeight: '500', 
+                  marginBottom: '6px', 
+                  color: '#374151' 
+                }}>
+                  パスワード（確認）<span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Lock style={{ 
+                    position: 'absolute', 
+                    left: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)', 
+                    color: '#9ca3af', 
+                    pointerEvents: 'none' 
+                  }} size={20} />
+                  <input
+                    type="password"
+                    value={registerForm.confirmPassword}
+                    onChange={(e) => setRegisterForm({...registerForm, confirmPassword: e.target.value})}
+                    required
+                    placeholder="もう一度パスワードを入力"
+                    style={{ 
+                      width: '100%', 
+                      paddingLeft: '44px', 
+                      paddingRight: '16px',
+                      paddingTop: '10px',
+                      paddingBottom: '10px',
+                      border: showPasswordError ? '1px solid #dc2626' : '1px solid #d1d5db', 
+                      borderRadius: '8px', 
+                      fontSize: '14px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                {showPasswordError && (
+                  <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: '4px' }}>⚠️</span>
+                    パスワードが一致しません
+                  </p>
+                )}
+                {registerForm.confirmPassword.length > 0 && passwordsMatch && (
+                  <p style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: '4px' }}>✓</span>
+                    パスワードが一致しています
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -619,7 +659,6 @@ const Login = ({ onLoginSuccess }) => {
                 />
               </div>
 
-              {/* 学科 */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -658,7 +697,6 @@ const Login = ({ onLoginSuccess }) => {
                 </select>
               </div>
 
-              {/* 学年 */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -692,7 +730,6 @@ const Login = ({ onLoginSuccess }) => {
                 </select>
               </div>
 
-              {/* 新規登録ボタン */}
               <button
                 type="submit"
                 disabled={loading}
@@ -718,7 +755,6 @@ const Login = ({ onLoginSuccess }) => {
           </form>
         )}
 
-        {/* ログイン/新規登録の切り替えリンク */}
         <div style={{ marginTop: '24px', textAlign: 'center' }}>
           <button
             onClick={() => {
@@ -729,6 +765,7 @@ const Login = ({ onLoginSuccess }) => {
                 studentId: '',
                 email: '',
                 password: '',
+                confirmPassword: '', // ← リセット時も追加
                 nickname: '',
                 department: '',
                 year: ''
