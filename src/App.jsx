@@ -17,7 +17,7 @@ const App = () => {
       if (token) {
         try {
           // トークンが有効か確認 & 最新のユーザー情報を取得
-          const response = await fetch('https://tasukeai.vercel.app/api/profile', {
+          const response = await fetch('/api/profile', {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -55,7 +55,7 @@ const App = () => {
     
     try {
       // ログイン直後にユーザー情報を取得
-      const response = await fetch('https://tasukeai.vercel.app/api/profile', {
+      const response = await fetch('/api/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -81,7 +81,7 @@ const App = () => {
     
     try {
       // プロフィールを保存
-      const saveResponse = await fetch('https://tasukeai.vercel.app/api/profile', {
+      const saveResponse = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const App = () => {
 
       // 保存後、キャッシュバスティングで最新データを取得
       const refreshResponse = await fetch(
-        `https://tasukeai.vercel.app/api/profile?_t=${Date.now()}`,
+        `/api/profile?_t=${Date.now()}`,
         {
           method: 'GET',
           headers: {

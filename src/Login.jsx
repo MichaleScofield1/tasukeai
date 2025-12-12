@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Lock, LogIn, Mail, CheckCircle, UserPlus } from 'lucide-react';
 
-const API_BASE = "https://tasukeai.vercel.app";
+const API_BASE = "";
 
 const Login = ({ onLoginSuccess }) => {
   // ====================================================================
