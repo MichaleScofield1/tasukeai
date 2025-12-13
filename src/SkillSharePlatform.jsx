@@ -960,114 +960,139 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
             )}
 
             {/* プロフィール設定モーダル */}
-            {showProfile && (
-              <div style={modalOverlayStyle} onClick={profile ? () => setShowProfile(false) : null}>
-                <div style={{...modalContentStyle, maxWidth: '500px'}} onClick={(e) => e.stopPropagation()}>
-                  <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
-                    プロフィール設定
-                  </h2>
+{showProfile && (
+  <div style={modalOverlayStyle} onClick={profile ? () => setShowProfile(false) : null}>
+    <div style={{...modalContentStyle, maxWidth: '500px'}} onClick={(e) => e.stopPropagation()}>
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
+        プロフィール設定
+      </h2>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-                    {/* ニックネーム */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
-                        ニックネーム <span style={{ color: '#dc2626' }}>*必須</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={profileForm.nickname}
-                        onChange={(e) => setProfileForm({...profileForm, nickname: e.target.value})}
-                        style={{
-                          width: '100%', padding: '8px',
-                          border: '1px solid #d1d5db', borderRadius: '6px'
-                        }}
-                      />
-                    </div>
+        {/* アカウント種別表示 */}
+        {profile?.accounttype && (
+          <div style={{
+            padding: '12px',
+            backgroundColor: profile.accounttype === 'professor' ? '#f3e8ff' : '#dbeafe',
+            borderRadius: '8px',
+            textAlign: 'center'
+          }}>
+            <p style={{
+              fontSize: '14px',
+              color: profile.accounttype === 'professor' ? '#7c3aed' : '#2563eb',
+              fontWeight: '600'
+            }}>
+              {profile.accounttype === 'professor' ? '👨‍🏫 教員アカウント' : '🎓 学生アカウント'}
+            </p>
+          </div>
+        )}
 
-                    {/* スキルタグ */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
-                        スキルタグ
-                      </label>
-                      <input
-                        type="text"
-                        value={profileForm.skills}
-                        onChange={(e) => setProfileForm({...profileForm, skills: e.target.value})}
-                        style={{
-                          width: '100%', padding: '8px',
-                          border: '1px solid #d1d5db', borderRadius: '6px'
-                        }}
-                        placeholder="例: JavaScript, React, デザイン (カンマ区切り)"
-                      />
-                    </div>
+        {/* ニックネーム */}
+        <div>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+            ニックネーム <span style={{ color: '#dc2626' }}>*必須</span>
+          </label>
+          <input
+            type="text"
+            value={profileForm.nickname}
+            onChange={(e) => setProfileForm({...profileForm, nickname: e.target.value})}
+            style={{
+              width: '100%', padding: '8px',
+              border: '1px solid #d1d5db', borderRadius: '6px'
+            }}
+          />
+        </div>
 
-                    {/* 学科 */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
-                        学科
-                      </label>
-                      <select 
-                        value={profileForm.department}
-                        onChange={(e) => setProfileForm({...profileForm, department: e.target.value})}
-                        style={{
-                          width: '100%', padding: '8px',
-                          border: '1px solid #d1d5db', borderRadius: '6px'
-                        }}
-                      >
-                        <option value="">選択してください</option>
-                        <option value="情報計算科学科">情報計算科学科</option>
-                        <option value="数理科学科">数理科学科</option>
-                        <option value="先端物理学科">先端物理学科</option>
-                        <option value="生命情報学科">生命情報学科</option>
-                        <option value="電気電子情報工学科">電気電子情報工学科</option>
-                        <option value="経営システム工学科">経営システム工学科</option>
-                        <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
-                        <option value="社会基盤工学科">社会基盤工学科</option>
-                        <option value="建築学科">建築学科</option>
-                      </select>
-                    </div>
+        {/* スキルタグ */}
+        <div>
+          <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+            スキルタグ
+          </label>
+          <input
+            type="text"
+            value={profileForm.skills}
+            onChange={(e) => setProfileForm({...profileForm, skills: e.target.value})}
+            style={{
+              width: '100%', padding: '8px',
+              border: '1px solid #d1d5db', borderRadius: '6px'
+            }}
+            placeholder="例: JavaScript, React, デザイン (カンマ区切り)"
+          />
+        </div>
 
-                    {/* 学年 */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
-                        学年
-                      </label>
-                      <select 
-                        value={profileForm.year}
-                        onChange={(e) => setProfileForm({...profileForm, year: e.target.value})}
-                        style={{
-                          width: '100%', padding: '8px',
-                          border: '1px solid #d1d5db', borderRadius: '6px'
-                        }}
-                      >
-                        <option value="">選択してください</option>
-                        <option value="1年">1年</option>
-                        <option value="2年">2年</option>
-                        <option value="3年">3年</option>
-                        <option value="4年">4年</option>
-                        <option value="修士1年">修士1年</option>
-                        <option value="修士2年">修士2年</option>
-                      </select>
-                    </div>
+        {/* 学科・学年は学生のみ表示 */}
+        {profile?.accounttype !== 'professor' && (
+          <>
+            {/* 学科 */}
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+                学科
+              </label>
+              <select 
+                value={profileForm.department}
+                onChange={(e) => setProfileForm({...profileForm, department: e.target.value})}
+                style={{
+                  width: '100%', padding: '8px',
+                  border: '1px solid #d1d5db', borderRadius: '6px'
+                }}
+              >
+                <option value="">選択してください</option>
+                <option value="情報計算科学科">情報計算科学科</option>
+                <option value="数理科学科">数理科学科</option>
+                <option value="先端物理学科">先端物理学科</option>
+                <option value="生命情報学科">生命情報学科</option>
+                <option value="電気電子情報工学科">電気電子情報工学科</option>
+                <option value="経営システム工学科">経営システム工学科</option>
+                <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
+                <option value="社会基盤工学科">社会基盤工学科</option>
+                <option value="建築学科">建築学科</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
 
-                    <button 
-                      onClick={handleProfileSubmit}
-                      disabled={!profileForm.nickname.trim()}
-                      style={{
-                        width: '100%', backgroundColor: profileForm.nickname.trim() ? '#2563eb' : '#9ca3af',
-                        color: 'white', padding: '8px',
-                        borderRadius: '6px', border: 'none',
-                        cursor: profileForm.nickname.trim() ? 'pointer' : 'not-allowed',
-                        transition: 'background-color 0.2s'
-                      }}
-                    >
-                      保存する
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* 学年 */}
+            <div>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>
+                学年
+              </label>
+              <select 
+                value={profileForm.year}
+                onChange={(e) => setProfileForm({...profileForm, year: e.target.value})}
+                style={{
+                  width: '100%', padding: '8px',
+                  border: '1px solid #d1d5db', borderRadius: '6px'
+                }}
+              >
+                <option value="">選択してください</option>
+                <option value="1年">1年</option>
+                <option value="2年">2年</option>
+                <option value="3年">3年</option>
+                <option value="4年">4年</option>
+                <option value="修士1年">修士1年</option>
+                <option value="修士2年">修士2年</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
+          </>
+        )}
+
+        <button 
+          onClick={handleProfileSubmit}
+          disabled={!profileForm.nickname.trim()}
+          style={{
+            width: '100%', backgroundColor: profileForm.nickname.trim() ? '#2563eb' : '#9ca3af',
+            color: 'white', padding: '8px',
+            borderRadius: '6px', border: 'none',
+            cursor: profileForm.nickname.trim() ? 'pointer' : 'not-allowed',
+            transition: 'background-color 0.2s'
+          }}
+        >
+          保存する
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
           </div>
         </div>

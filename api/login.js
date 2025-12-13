@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
   const { studentId, password } = req.body;
 
   if (!studentId || !password) {
-    return res.status(400).json({ error: "学籍番号とパスワードは必須です" });
+    return res.status(400).json({ error: "ユーザーIDとパスワードは必須です" });
   }
 
   try {
@@ -26,24 +26,24 @@ module.exports = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: "学籍番号またはパスワードが違います" });
+      return res.status(401).json({ error: "ユーザーIDまたはパスワードが違います" });
     }
 
     const user = result.rows[0];
 
     // メール認証チェック
     if (!user.isverified) {
-      return res.status(403).json({ error: "メール認証が完了していません" });
+      return res.status(403).json({ error: "メール認証が完了していません。メールボックスを確認してください。" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: "学籍番号またはパスワードが違います" });
+      return res.status(401).json({ error: "ユーザーIDまたはパスワードが違います" });
     }
 
     const token = jwt.sign({ userId: user.userid }, SECRET_KEY, { expiresIn: "7d" });
 
-    // ★ skillsを配列として返す（DBに保存されている形式に応じて処理）
+    // skillsを配列として返す（DBに保存されている形式に応じて処理）
     let skills = [];
     if (user.skills) {
       // skillsがJSON文字列の場合
@@ -64,18 +64,19 @@ module.exports = async (req, res) => {
       message: "ログイン成功",
       token,
       user: {
-        userid: user.userid,      // ★ userId → userid に統一
-        studentid: user.studentid, // ★ 追加（念のため）
-        email: user.email,         // ★ 追加（念のため）
+        userid: user.userid,
+        studentid: user.studentid,
+        email: user.email,
         nickname: user.nickname,
-        department: user.department,
-        year: user.year,
-        skills: skills             // ★ skillsを配列として返す
+        department: user.department || null,  // 教授の場合はnull
+        year: user.year || null,              // 教授の場合はnull
+        accounttype: user.accounttype || 'student',  // ★ 追加
+        skills: skills
       }
     });
 
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("❌ ログインエラー:", err);
     res.status(500).json({ error: "サーバーエラー" });
   }
 };
