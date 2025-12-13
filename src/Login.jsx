@@ -19,20 +19,49 @@ const Login = ({ onLoginSuccess }) => {
     password: ''
   });
 
-  // 新規登録用フォーム（confirmPasswordを追加）
+  // 新規登録用フォーム
   const [registerForm, setRegisterForm] = useState({
     studentId: '',
     email: '',
     password: '',
-    confirmPassword: '', // ← 追加
+    confirmPassword: '',
     nickname: '',
     department: '',
-    year: ''
+    year: '',
+    accountType: 'student' // 'student' or 'professor'
   });
 
   // パスワード一致チェック
   const passwordsMatch = registerForm.password === registerForm.confirmPassword;
   const showPasswordError = registerForm.confirmPassword.length > 0 && !passwordsMatch;
+
+  // メールアドレスから学籍番号/ユーザーID部分を抽出
+  const extractIdFromEmail = (email) => {
+    return email.split('@')[0];
+  };
+
+  // メールアドレスと学籍番号の整合性チェック
+  const checkEmailIdMatch = () => {
+    if (!registerForm.email || !registerForm.studentId) return true;
+    
+    const emailId = extractIdFromEmail(registerForm.email);
+    return emailId === registerForm.studentId;
+  };
+
+  const emailIdMatch = checkEmailIdMatch();
+  const showEmailIdError = registerForm.email && registerForm.studentId && !emailIdMatch;
+
+  // メールアドレスのドメインチェック
+  const isValidEmailDomain = (email) => {
+    return email.endsWith('@ed.tus.ac.jp') || email.endsWith('@rs.tus.ac.jp');
+  };
+
+  // アカウント種別の自動判定（メールアドレスから）
+  const detectAccountType = (email) => {
+    if (email.endsWith('@rs.tus.ac.jp')) return 'professor';
+    if (email.endsWith('@ed.tus.ac.jp')) return 'student';
+    return 'student';
+  };
 
   // ====================================================================
   // ログイン処理
@@ -43,7 +72,7 @@ const Login = ({ onLoginSuccess }) => {
     setLoading(true);
 
     if (!loginForm.studentId || !loginForm.password) {
-      setError('学籍番号とパスワードを入力してください');
+      setError('ユーザーIDとパスワードを入力してください');
       setLoading(false);
       return;
     }
@@ -91,8 +120,16 @@ const Login = ({ onLoginSuccess }) => {
 
     // バリデーション
     if (!registerForm.studentId || !registerForm.email || !registerForm.password || 
-        !registerForm.confirmPassword || !registerForm.nickname || !registerForm.department || !registerForm.year) {
-      setError('すべての項目を入力してください');
+        !registerForm.confirmPassword || !registerForm.nickname) {
+      setError('必須項目を入力してください');
+      setLoading(false);
+      return;
+    }
+
+    // 学生の場合は学科・学年必須
+    const accountType = detectAccountType(registerForm.email);
+    if (accountType === 'student' && (!registerForm.department || !registerForm.year)) {
+      setError('学科と学年を選択してください');
       setLoading(false);
       return;
     }
@@ -110,8 +147,16 @@ const Login = ({ onLoginSuccess }) => {
       return;
     }
 
-    if (!registerForm.email.endsWith('@ed.tus.ac.jp')) {
-      setError('大学のメールアドレス（@ed.tus.ac.jp）を使用してください');
+    // メールアドレスドメインチェック
+    if (!isValidEmailDomain(registerForm.email)) {
+      setError('大学のメールアドレス（@ed.tus.ac.jp または @rs.tus.ac.jp）を使用してください');
+      setLoading(false);
+      return;
+    }
+
+    // メールアドレスとID部分の整合性チェック
+    if (!emailIdMatch) {
+      setError('メールアドレスの@前の部分とユーザーIDが一致しません');
       setLoading(false);
       return;
     }
@@ -124,10 +169,11 @@ const Login = ({ onLoginSuccess }) => {
           studentId: registerForm.studentId,
           email: registerForm.email,
           password: registerForm.password,
-          confirmPassword: registerForm.confirmPassword, // ← 追加
+          confirmPassword: registerForm.confirmPassword,
           nickname: registerForm.nickname,
-          department: registerForm.department,
-          year: registerForm.year
+          department: registerForm.department || null,
+          year: registerForm.year || null,
+          accountType: accountType
         })
       });
 
@@ -152,10 +198,11 @@ const Login = ({ onLoginSuccess }) => {
         studentId: '',
         email: '',
         password: '',
-        confirmPassword: '', // ← リセット時も追加
+        confirmPassword: '',
         nickname: '',
         department: '',
-        year: ''
+        year: '',
+        accountType: 'student'
       });
 
     } catch (err) {
@@ -164,6 +211,20 @@ const Login = ({ onLoginSuccess }) => {
     }
 
     setLoading(false);
+  };
+
+  // メールアドレス変更時の処理
+  const handleEmailChange = (e) => {
+    const email = e.target.value;
+    const accountType = detectAccountType(email);
+    setRegisterForm({
+      ...registerForm, 
+      email: email,
+      accountType: accountType,
+      // 教授の場合は学科・学年をクリア
+      department: accountType === 'professor' ? '' : registerForm.department,
+      year: accountType === 'professor' ? '' : registerForm.year
+    });
   };
 
   // ====================================================================
@@ -258,7 +319,7 @@ const Login = ({ onLoginSuccess }) => {
               <li>メールボックスを確認してください</li>
               <li>届いたメール内のリンクをクリックしてください</li>
               <li>ログイン画面が表示されます</li>
-              <li>学籍番号とパスワードでログインしてください</li>
+              <li>ユーザーIDとパスワードでログインしてください</li>
             </ol>
           </div>
 
@@ -313,6 +374,8 @@ const Login = ({ onLoginSuccess }) => {
     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
   };
 
+  const isProfessor = registerForm.accountType === 'professor';
+
   // ====================================================================
   // ログイン/新規登録画面
   // ====================================================================
@@ -352,7 +415,7 @@ const Login = ({ onLoginSuccess }) => {
                   marginBottom: '6px', 
                   color: '#374151' 
                 }}>
-                  学籍番号
+                  ユーザーID（学籍番号 または メールアドレスの@前）
                 </label>
                 <div style={{ position: 'relative' }}>
                   <User style={{ 
@@ -368,7 +431,7 @@ const Login = ({ onLoginSuccess }) => {
                     value={loginForm.studentId}
                     onChange={(e) => setLoginForm({...loginForm, studentId: e.target.value})}
                     required
-                    placeholder="学籍番号を入力"
+                    placeholder="ユーザーIDを入力"
                     style={{ 
                       width: '100%', 
                       paddingLeft: '44px', 
@@ -452,6 +515,7 @@ const Login = ({ onLoginSuccess }) => {
           <form onSubmit={handleRegister}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               
+              {/* メールアドレスを先に配置 */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -460,7 +524,56 @@ const Login = ({ onLoginSuccess }) => {
                   marginBottom: '6px', 
                   color: '#374151' 
                 }}>
-                  学籍番号
+                  メールアドレス<span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Mail style={{ 
+                    position: 'absolute', 
+                    left: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)', 
+                    color: '#9ca3af', 
+                    pointerEvents: 'none' 
+                  }} size={20} />
+                  <input
+                    type="email"
+                    value={registerForm.email}
+                    onChange={handleEmailChange}
+                    required
+                    placeholder="学生: xxx@ed.tus.ac.jp / 教員: xxx@rs.tus.ac.jp"
+                    style={{ 
+                      width: '100%', 
+                      paddingLeft: '44px', 
+                      paddingRight: '16px',
+                      paddingTop: '10px',
+                      paddingBottom: '10px',
+                      border: '1px solid #d1d5db', 
+                      borderRadius: '8px', 
+                      fontSize: '14px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                {registerForm.email && (
+                  <p style={{ 
+                    fontSize: '12px', 
+                    color: isProfessor ? '#7c3aed' : '#2563eb', 
+                    marginTop: '4px' 
+                  }}>
+                    {isProfessor ? '👨‍🏫 教員アカウント' : '🎓 学生アカウント'}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  fontSize: '14px', 
+                  fontWeight: '500', 
+                  marginBottom: '6px', 
+                  color: '#374151' 
+                }}>
+                  ユーザーID（{isProfessor ? 'メールアドレスの@前の部分' : '学籍番号'}）<span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <div style={{ position: 'relative' }}>
                   <User style={{ 
@@ -476,60 +589,32 @@ const Login = ({ onLoginSuccess }) => {
                     value={registerForm.studentId}
                     onChange={(e) => setRegisterForm({...registerForm, studentId: e.target.value})}
                     required
-                    placeholder="学籍番号を入力"
+                    placeholder={isProfessor ? 'メールアドレスの@前の部分' : '学籍番号を入力'}
                     style={{ 
                       width: '100%', 
                       paddingLeft: '44px', 
                       paddingRight: '16px',
                       paddingTop: '10px',
                       paddingBottom: '10px',
-                      border: '1px solid #d1d5db', 
+                      border: showEmailIdError ? '1px solid #dc2626' : '1px solid #d1d5db', 
                       borderRadius: '8px', 
                       fontSize: '14px',
                       boxSizing: 'border-box'
                     }}
                   />
                 </div>
-              </div>
-
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '500', 
-                  marginBottom: '6px', 
-                  color: '#374151' 
-                }}>
-                  メールアドレス（@ed.tus.ac.jp）<span style={{ color: '#dc2626' }}>*</span>
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Mail style={{ 
-                    position: 'absolute', 
-                    left: '12px', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)', 
-                    color: '#9ca3af', 
-                    pointerEvents: 'none' 
-                  }} size={20} />
-                  <input
-                    type="email"
-                    value={registerForm.email}
-                    onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
-                    required
-                    placeholder="xxxxxxxx@ed.tus.ac.jp"
-                    style={{ 
-                      width: '100%', 
-                      paddingLeft: '44px', 
-                      paddingRight: '16px',
-                      paddingTop: '10px',
-                      paddingBottom: '10px',
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '8px', 
-                      fontSize: '14px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
+                {showEmailIdError && (
+                  <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: '4px' }}>⚠️</span>
+                    メールアドレスの@前の部分と一致させてください
+                  </p>
+                )}
+                {registerForm.email && registerForm.studentId && emailIdMatch && (
+                  <p style={{ fontSize: '12px', color: '#10b981', marginTop: '4px', display: 'flex', alignItems: 'center' }}>
+                    <span style={{ marginRight: '4px' }}>✓</span>
+                    メールアドレスと一致しています
+                  </p>
+                )}
               </div>
 
               {/* パスワード */}
@@ -579,7 +664,7 @@ const Login = ({ onLoginSuccess }) => {
                 )}
               </div>
 
-              {/* パスワード確認（新規追加） */}
+              {/* パスワード確認 */}
               <div>
                 <label style={{ 
                   display: 'block', 
@@ -659,76 +744,81 @@ const Login = ({ onLoginSuccess }) => {
                 />
               </div>
 
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '500', 
-                  marginBottom: '6px', 
-                  color: '#374151' 
-                }}>
-                  学科
-                </label>
-                <select
-                  value={registerForm.department}
-                  onChange={(e) => setRegisterForm({...registerForm, department: e.target.value})}
-                  required
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px',
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '8px', 
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                    backgroundColor: 'white'
-                  }}
-                >
-                  <option value="">選択してください</option>
-                  <option value="情報計算科学科">情報計算科学科</option>
-                  <option value="数理科学科">数理科学科</option>
-                  <option value="先端物理学科">先端物理学科</option>
-                  <option value="生命情報学科">生命情報学科</option>
-                  <option value="電気電子情報工学科">電気電子情報工学科</option>
-                  <option value="経営システム工学科">経営システム工学科</option>
-                  <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
-                  <option value="社会基盤工学科">社会基盤工学科</option>
-                  <option value="建築学科">建築学科</option>
-                  <option value="その他">その他</option>
-                </select>
-              </div>
+              {/* 学生の場合のみ学科・学年を表示 */}
+              {!isProfessor && (
+                <>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      fontSize: '14px', 
+                      fontWeight: '500', 
+                      marginBottom: '6px', 
+                      color: '#374151' 
+                    }}>
+                      学科
+                    </label>
+                    <select
+                      value={registerForm.department}
+                      onChange={(e) => setRegisterForm({...registerForm, department: e.target.value})}
+                      required
+                      style={{ 
+                        width: '100%', 
+                        padding: '10px',
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '8px', 
+                        fontSize: '14px',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    >
+                      <option value="">選択してください</option>
+                      <option value="情報計算科学科">情報計算科学科</option>
+                      <option value="数理科学科">数理科学科</option>
+                      <option value="先端物理学科">先端物理学科</option>
+                      <option value="生命情報学科">生命情報学科</option>
+                      <option value="電気電子情報工学科">電気電子情報工学科</option>
+                      <option value="経営システム工学科">経営システム工学科</option>
+                      <option value="機械航空宇宙工学科">機械航空宇宙工学科</option>
+                      <option value="社会基盤工学科">社会基盤工学科</option>
+                      <option value="建築学科">建築学科</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '500', 
-                  marginBottom: '6px', 
-                  color: '#374151' 
-                }}>
-                  学年
-                </label>
-                <select
-                  value={registerForm.year}
-                  onChange={(e) => setRegisterForm({...registerForm, year: e.target.value})}
-                  required
-                  style={{ 
-                    width: '100%', 
-                    padding: '10px',
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '8px', 
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                    backgroundColor: 'white'
-                  }}
-                >
-                  <option value="">選択してください</option>
-                  <option value="1年">1年</option>
-                  <option value="2年">2年</option>
-                  <option value="3年">3年</option>
-                  <option value="4年">4年</option>
-                  <option value="その他">その他</option>
-                </select>
-              </div>
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      fontSize: '14px', 
+                      fontWeight: '500', 
+                      marginBottom: '6px', 
+                      color: '#374151' 
+                    }}>
+                      学年
+                    </label>
+                    <select
+                      value={registerForm.year}
+                      onChange={(e) => setRegisterForm({...registerForm, year: e.target.value})}
+                      required
+                      style={{ 
+                        width: '100%', 
+                        padding: '10px',
+                        border: '1px solid #d1d5db', 
+                        borderRadius: '8px', 
+                        fontSize: '14px',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    >
+                      <option value="">選択してください</option>
+                      <option value="1年">1年</option>
+                      <option value="2年">2年</option>
+                      <option value="3年">3年</option>
+                      <option value="4年">4年</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </div>
+                </>
+              )}
 
               <button
                 type="submit"
@@ -765,10 +855,11 @@ const Login = ({ onLoginSuccess }) => {
                 studentId: '',
                 email: '',
                 password: '',
-                confirmPassword: '', // ← リセット時も追加
+                confirmPassword: '',
                 nickname: '',
                 department: '',
-                year: ''
+                year: '',
+                accountType: 'student'
               });
             }}
             style={{ 

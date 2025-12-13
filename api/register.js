@@ -15,9 +15,9 @@ module.exports = async (req, res) => {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { studentId, email, password, confirmPassword, nickname, department, year } = req.body;
+  const { studentId, email, password, confirmPassword, nickname, department, year, accountType } = req.body;
 
-  console.log("📝 登録リクエスト:", { studentId, email, nickname, department, year });
+  console.log("📝 登録リクエスト:", { studentId, email, nickname, department, year, accountType });
 
   // 必須チェック
   if (!studentId || !email || !password || !confirmPassword) {
@@ -34,9 +34,25 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: "パスワードは6文字以上で入力してください" });
   }
 
-  // メールアドレスのドメインチェック（@ed.tus.ac.jp）
-  if (!email.endsWith('@ed.tus.ac.jp')) {
-    return res.status(400).json({ error: "@ed.tus.ac.jp のメールアドレスを使用してください" });
+  // メールアドレスのドメインチェック（学生 or 教授）
+  const isValidDomain = email.endsWith('@ed.tus.ac.jp') || email.endsWith('@rs.tus.ac.jp');
+  if (!isValidDomain) {
+    return res.status(400).json({ error: "@ed.tus.ac.jp または @rs.tus.ac.jp のメールアドレスを使用してください" });
+  }
+
+  // メールアドレスとstudentIdの整合性チェック
+  const emailPrefix = email.split('@')[0];
+  if (emailPrefix !== studentId) {
+    return res.status(400).json({ error: "メールアドレスの@前の部分とユーザーIDが一致しません" });
+  }
+
+  // アカウントタイプの判定（フロントエンドから送られない場合は自動判定）
+  const detectedAccountType = email.endsWith('@rs.tus.ac.jp') ? 'professor' : 'student';
+  const finalAccountType = accountType || detectedAccountType;
+
+  // 学生の場合は学科・学年必須
+  if (finalAccountType === 'student' && (!department || !year)) {
+    return res.status(400).json({ error: "学生アカウントには学科と学年が必要です" });
   }
 
   try {
@@ -50,7 +66,7 @@ module.exports = async (req, res) => {
     if (existingUser.rows.length > 0) {
       const existing = existingUser.rows[0];
       if (existing.studentid === studentId) {
-        return res.status(409).json({ error: "この学籍番号は既に登録されています" });
+        return res.status(409).json({ error: "このユーザーIDは既に登録されています" });
       }
       if (existing.email === email) {
         return res.status(409).json({ error: "このメールアドレスは既に登録されています" });
@@ -69,14 +85,15 @@ module.exports = async (req, res) => {
     const safeDepartment = department || "";
     const safeYear = year || "";
 
-    console.log("💾 データベースに保存:", { userId, studentId, email });
+    console.log("💾 データベースに保存:", { userId, studentId, email, accountType: finalAccountType });
 
-    // データベースに保存
+    // データベースに保存（accountTypeカラムが存在する場合）
+    // もしaccountTypeカラムがない場合は、ALTER TABLEで追加する必要があります
     const result = await query(
-      `INSERT INTO users (userid, studentid, email, password, nickname, department, year, verificationtoken, isverified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING userid, studentid, email, nickname`,
-      [userId, studentId, email, hashedPassword, safeNickname, safeDepartment, safeYear, verificationToken, false]
+      `INSERT INTO users (userid, studentid, email, password, nickname, department, year, accounttype, verificationtoken, isverified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING userid, studentid, email, nickname, accounttype`,
+      [userId, studentId, email, hashedPassword, safeNickname, safeDepartment, safeYear, finalAccountType, verificationToken, false]
     );
 
     console.log("✅ ユーザー作成成功:", result.rows[0]);
@@ -101,7 +118,15 @@ module.exports = async (req, res) => {
     
     // 詳細なエラーメッセージ
     if (err.code === '23505') { // PostgreSQLの一意制約違反
-      return res.status(409).json({ error: "この学籍番号またはメールアドレスは既に登録されています" });
+      return res.status(409).json({ error: "このユーザーIDまたはメールアドレスは既に登録されています" });
+    }
+    
+    // accounttypeカラムが存在しない場合のエラー
+    if (err.code === '42703') {
+      return res.status(500).json({ 
+        error: "データベーススキーマエラー",
+        message: "accounttypeカラムが存在しません。データベースのマイグレーションが必要です。"
+      });
     }
     
     res.status(500).json({ 
