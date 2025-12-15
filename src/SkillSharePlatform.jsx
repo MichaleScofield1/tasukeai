@@ -84,7 +84,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
       
           const updated = {
             nickname: profileForm.nickname,
-            skills: profileForm.skills, // 既に配列なのでそのまま送信
+            skills: profileForm.skills, // 配列のまま送信
             department: profileForm.department,
             year: profileForm.year
           };
