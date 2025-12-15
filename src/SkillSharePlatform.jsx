@@ -19,12 +19,11 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     });
     const [profileForm, setProfileForm] = useState({
       nickname: '',
-      skills: [], // 配列に変更
+      skills: [],
       department: '',
       year: ''
     });
 
-    // 利用可能なスキル一覧
     const availableSkills = ['数学', '英語', '物理', '化学', '生物', '地学', 'プログラミング', 'その他'];
 
     useEffect(() => {
@@ -32,7 +31,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
           setProfile(authUser);
           setProfileForm({
               nickname: authUser.nickname || "",
-              skills: authUser.skills || [], // 配列のまま保持
+              skills: authUser.skills || [],
               department: authUser.department || "",
               year: authUser.year || "",
           });
@@ -60,7 +59,6 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
         }
     };
 
-    // スキルタグのトグル処理
     const handleSkillToggle = (skill) => {
       if (profileForm.skills.includes(skill)) {
         setProfileForm({
@@ -84,7 +82,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
       
           const updated = {
             nickname: profileForm.nickname,
-            skills: profileForm.skills, // 配列のまま送信
+            skills: profileForm.skills,
             department: profileForm.department,
             year: profileForm.year
           };
@@ -95,7 +93,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
             setProfile(result.data);
             setProfileForm({
               nickname: result.data.nickname || "",
-              skills: result.data.skills || [], // 配列のまま
+              skills: result.data.skills || [],
               department: result.data.department || "",
               year: result.data.year || "",
             });
@@ -363,6 +361,27 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                             ({thread.authorDepartment} {thread.authorYear})
                           </span>
                         )}
+                        {thread.authorSkills && thread.authorSkills.length > 0 && (
+                          <span style={{ marginLeft: '8px' }}>
+                            {thread.authorSkills.map((skill, idx) => (
+                              <span 
+                                key={idx} 
+                                style={{ 
+                                  display: 'inline-block',
+                                  padding: '2px 6px', 
+                                  backgroundColor: '#fef3c7', 
+                                  color: '#92400e', 
+                                  borderRadius: '4px', 
+                                  fontSize: '11px',
+                                  marginRight: '4px',
+                                  fontWeight: '500'
+                                }}
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </span>
+                        )}
                       </p>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {(thread.tags || "").split(",").filter(t => t).map((tag, idx) => (
@@ -530,6 +549,27 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                           ({selectedThread.authorDepartment} {selectedThread.authorYear})
                         </span>
                       )}
+                      {selectedThread.authorSkills && selectedThread.authorSkills.length > 0 && (
+                        <span style={{ marginLeft: '8px' }}>
+                          {selectedThread.authorSkills.map((skill, idx) => (
+                            <span 
+                              key={idx} 
+                              style={{ 
+                                display: 'inline-block',
+                                padding: '2px 6px', 
+                                backgroundColor: '#fef3c7', 
+                                color: '#92400e', 
+                                borderRadius: '4px', 
+                                fontSize: '11px',
+                                marginRight: '4px',
+                                fontWeight: '500'
+                              }}
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </span>
+                      )}
                     </p>
                     <p style={{ color: '#1f2937', whiteSpace: 'pre-wrap' }}>{selectedThread.content}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '12px' }}>
@@ -548,6 +588,27 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                         {response.authorDepartment && (
                           <span style={{ marginLeft: '8px', color: '#6b7280' }}>
                             ({response.authorDepartment} {response.authorYear})
+                          </span>
+                        )}
+                        {response.authorSkills && response.authorSkills.length > 0 && (
+                          <span style={{ marginLeft: '8px' }}>
+                            {response.authorSkills.map((skill, idx) => (
+                              <span 
+                                key={idx} 
+                                style={{ 
+                                  display: 'inline-block',
+                                  padding: '2px 6px', 
+                                  backgroundColor: '#fef3c7', 
+                                  color: '#92400e', 
+                                  borderRadius: '4px', 
+                                  fontSize: '11px',
+                                  marginRight: '4px',
+                                  fontWeight: '500'
+                                }}
+                              >
+                                {skill}
+                              </span>
+                            ))}
                           </span>
                         )}
                       </p>
