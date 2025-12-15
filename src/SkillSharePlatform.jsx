@@ -19,17 +19,20 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
     });
     const [profileForm, setProfileForm] = useState({
       nickname: '',
-      skills: '',
+      skills: [], // 配列に変更
       department: '',
       year: ''
     });
+
+    // 利用可能なスキル一覧
+    const availableSkills = ['数学', '英語', '物理', '化学', '生物', '地学', 'プログラミング', 'その他'];
 
     useEffect(() => {
         if (authUser) {
           setProfile(authUser);
           setProfileForm({
               nickname: authUser.nickname || "",
-              skills: authUser.skills?.join(", ") || "",
+              skills: authUser.skills || [], // 配列のまま保持
               department: authUser.department || "",
               year: authUser.year || "",
           });
@@ -57,6 +60,21 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
         }
     };
 
+    // スキルタグのトグル処理
+    const handleSkillToggle = (skill) => {
+      if (profileForm.skills.includes(skill)) {
+        setProfileForm({
+          ...profileForm,
+          skills: profileForm.skills.filter(s => s !== skill)
+        });
+      } else {
+        setProfileForm({
+          ...profileForm,
+          skills: [...profileForm.skills, skill]
+        });
+      }
+    };
+
     const handleProfileSubmit = async () => {
         try {
           if (!profile || !profile.userid) {
@@ -66,7 +84,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
       
           const updated = {
             nickname: profileForm.nickname,
-            skills: profileForm.skills.split(",").map(s => s.trim()).filter(s => s.length > 0),
+            skills: profileForm.skills, // 既に配列なのでそのまま送信
             department: profileForm.department,
             year: profileForm.year
           };
@@ -77,7 +95,7 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
             setProfile(result.data);
             setProfileForm({
               nickname: result.data.nickname || "",
-              skills: result.data.skills?.join(", ") || "",
+              skills: result.data.skills || [], // 配列のまま
               department: result.data.department || "",
               year: result.data.year || "",
             });
@@ -597,16 +615,82 @@ const SkillSharePlatform = ({ onLogout, authUser, onProfileUpdate }) => {
                         style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
                       />
                     </div>
+                    
+                    {/* スキルタグのチェックボックス */}
                     <div>
-                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' }}>スキルタグ</label>
-                      <input
-                        type="text"
-                        value={profileForm.skills}
-                        onChange={(e) => setProfileForm({...profileForm, skills: e.target.value})}
-                        style={{ width: '100%', padding: '8px', border: '1px solid #d1d5db', borderRadius: '6px' }}
-                        placeholder="例: JavaScript, React, デザイン (カンマ区切り)"
-                      />
+                      <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '8px' }}>
+                        スキルタグ
+                      </label>
+                      <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(2, 1fr)', 
+                        gap: '12px',
+                        padding: '16px',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '8px',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        {availableSkills.map((skill) => (
+                          <label 
+                            key={skill} 
+                            style={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: '8px',
+                              cursor: 'pointer',
+                              padding: '8px',
+                              borderRadius: '6px',
+                              transition: 'background-color 0.2s',
+                              backgroundColor: profileForm.skills.includes(skill) ? '#dbeafe' : 'transparent'
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={profileForm.skills.includes(skill)}
+                              onChange={() => handleSkillToggle(skill)}
+                              style={{ 
+                                width: '18px', 
+                                height: '18px', 
+                                cursor: 'pointer',
+                                accentColor: '#2563eb'
+                              }}
+                            />
+                            <span style={{ 
+                              fontSize: '14px',
+                              fontWeight: profileForm.skills.includes(skill) ? '500' : '400',
+                              color: profileForm.skills.includes(skill) ? '#1e40af' : '#4b5563'
+                            }}>
+                              {skill}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {profileForm.skills.length > 0 && (
+                        <div style={{ marginTop: '12px' }}>
+                          <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '6px' }}>
+                            選択中: {profileForm.skills.length}個
+                          </p>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {profileForm.skills.map((skill, idx) => (
+                              <span 
+                                key={idx} 
+                                style={{ 
+                                  padding: '4px 10px', 
+                                  backgroundColor: '#2563eb', 
+                                  color: 'white', 
+                                  borderRadius: '6px', 
+                                  fontSize: '12px',
+                                  fontWeight: '500'
+                                }}
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
+
                     {profile?.accounttype !== 'professor' && (
                       <>
                         <div>

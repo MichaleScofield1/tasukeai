@@ -1,7 +1,7 @@
 // api/profile.js
 
 const jwt = require("jsonwebtoken");
-const { query } = require("./_utils/db");  // ← 修正
+const { query } = require("./_utils/db");
 const SECRET_KEY = process.env.JWT_SECRET;
 
 module.exports = async (req, res) => {
@@ -39,7 +39,13 @@ module.exports = async (req, res) => {
         return res.status(404).json({ error: "User not found" });
       }
 
-      return res.status(200).json(result.rows[0]);
+      // PostgreSQLのARRAY型は自動的にJavaScript配列に変換される
+      const user = result.rows[0];
+      if (!user.skills || !Array.isArray(user.skills)) {
+        user.skills = [];
+      }
+
+      return res.status(200).json(user);
     }
 
     // ------------------------------------------------------
@@ -70,20 +76,21 @@ module.exports = async (req, res) => {
         }
       }
 
-      // スキルタグの配列処理
-      let skillsValue = skills;
+      // スキルタグの配列処理（ARRAY型はそのまま渡せる）
+      let skillsValue = [];
       
       if (Array.isArray(skills)) {
         skillsValue = skills;
       } else if (typeof skills === 'string') {
-        skillsValue = skills;
+        // 文字列の場合はカンマ区切りで分割
+        skillsValue = skills.split(',').map(s => s.trim()).filter(s => s);
       } else if (skills === null || skills === undefined) {
         skillsValue = [];
       }
 
       console.log("処理後のskills:", skillsValue);
 
-      // データベース更新
+      // データベース更新（配列をそのまま渡す）
       const result = await query(
         `UPDATE users
         SET nickname = $1,
@@ -99,8 +106,13 @@ module.exports = async (req, res) => {
         return res.status(404).json({ error: "User not found" });
       }
 
-      console.log("✅ プロフィール更新成功:", result.rows[0]);
-      return res.status(200).json(result.rows[0]);
+      const updatedUser = result.rows[0];
+      if (!updatedUser.skills || !Array.isArray(updatedUser.skills)) {
+        updatedUser.skills = [];
+      }
+
+      console.log("✅ プロフィール更新成功:", updatedUser);
+      return res.status(200).json(updatedUser);
     }
 
     res.status(405).json({ error: "Method not allowed" });
