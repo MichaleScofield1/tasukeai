@@ -364,7 +364,7 @@ const Login = ({ onLoginSuccess }) => {
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     minHeight: '100vh',
     overflowY: 'auto', // スクロール可能に
-    padding: '20px 0' // 上下に余白
+    padding: '40px 0' // 上下に余白
   };
 
   const formContainerStyle = {
@@ -374,8 +374,8 @@ const Login = ({ onLoginSuccess }) => {
     maxWidth: '450px',
     width: '90%',
     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    margin: 'auto', // 中央配置
-    maxHeight: '95vh', // 最大高さを設定
+    margin: '20px auto',// 中央配置
+    maxHeight: 'none',
     overflowY: 'auto' // コンテナ内もスクロール可能に
   };
 
